@@ -24,8 +24,9 @@
   --accent3: var(--prussian-blue);
 
   /* Fonts */
-  --body-text: "Young Serif", serif;
+  --body-text: "Crimson Text", serif;
   --heading: "Montserrat", sans-serif;
+  --subheading: "Young Serif", serif;
   --other-text: "Source Code Pro", monospace;
 }
 
@@ -34,11 +35,14 @@ body {
   background-color: var(--bg);
   color: var(--text-color);
   font-family: var(--body-text);
+  font-size: 1.3rem;
 }
 img {
   max-width: 100%;
 }
-h1,
+h1 {
+  font-family: var(--heading);
+}
 h2,
 h3,
 h4,
@@ -46,18 +50,32 @@ h5,
 h6 {
   font-family: var(--heading);
 }
+a {
+  color: var(--text-color);
+}
 
 /* Header */
-#main-header {
+#main-header,
+#about {
   border-bottom: 2px solid var(--border-color);
 }
 #main-header p:first-of-type {
   font-family: var(--other-text);
-  color: var(--accent1);
+  color: var(--light-black);
   letter-spacing: 0.5rem;
   font-weight: bold;
+  font-size: 1rem;
+  text-decoration: underline;
 }
 h1 {
   font-weight: bold;
   font-size: 3rem;
+}
+h2,
+h3 {
+  font-weight: bold;
+  color: var(--accent1);
+}
+h3 {
+  font-size: 1.3rem;
 }
