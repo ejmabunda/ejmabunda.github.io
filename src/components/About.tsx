@@ -11,7 +11,7 @@ function About() {
   return (
     <>
       <section id="about" className="p-4">
-        <h2>About Me</h2>
+        <h2 className="mb-4">About Me</h2>
         <p>
           My mission? To whip up web experiences that aren't just easy on the
           eyes, but also super user-friendly, accessible, and flexible. I mean,
@@ -35,6 +35,7 @@ function About() {
           >
             resume
           </a>
+          , and <a href="#contact">contact me</a> if you want to chat.
         </p>
       </section>
     </>
