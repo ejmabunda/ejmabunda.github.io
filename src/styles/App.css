@@ -1,0 +1,63 @@
+/* Reset browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Variables */
+:root {
+  /* Colors */
+  --baby-powder: #fffffbff;
+  --moonstone: #639fabff;
+  --red-pantone: #ef233cff;
+  --eerie-black: #252627ff;
+  --prussian-blue: #172a3aff;
+  --light-black: #36383cff;
+  --dark-black: #222325ff;
+
+  --bg: var(--eerie-black);
+  --text-color: var(--baby-powder);
+  --border-color: var(--light-black);
+  --accent1: var(--moonstone);
+  --accent2: var(--red-pantone);
+  --accent3: var(--prussian-blue);
+
+  /* Fonts */
+  --body-text: "Young Serif", serif;
+  --heading: "Montserrat", sans-serif;
+  --other-text: "Source Code Pro", monospace;
+}
+
+/* Default styles */
+body {
+  background-color: var(--bg);
+  color: var(--text-color);
+  font-family: var(--body-text);
+}
+img {
+  max-width: 100%;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading);
+}
+
+/* Header */
+#main-header {
+  border-bottom: 2px solid var(--border-color);
+}
+#main-header p:first-of-type {
+  font-family: var(--other-text);
+  color: var(--accent1);
+  letter-spacing: 0.5rem;
+  font-weight: bold;
+}
+h1 {
+  font-weight: bold;
+  font-size: 3rem;
+}
