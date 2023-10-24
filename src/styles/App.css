@@ -24,10 +24,10 @@
   --accent3: var(--prussian-blue);
 
   /* Fonts */
-  --body-text: "Crimson Text", serif;
-  --heading: "Montserrat", sans-serif;
-  --subheading: "Young Serif", serif;
-  --other-text: "Source Code Pro", monospace;
+  --body-text: "Zilla Slab", serif;
+  --heading: "Kanit", sans-serif;
+  --subheading: "Crimson Text" serif;
+  --other-text: "Young Serif", serif;
 }
 
 /* Default styles */
@@ -68,14 +68,48 @@ a {
   font-family: var(--other-text);
   font-size: 1rem;
   font-weight: bold;
-  padding: 0.4rem 0.5rem;
+  padding: 0.2rem 0.5rem;
 }
 
 /* Header */
+#menu-toggle {
+  width: 40px;
+  height: 40px;
+  float: right;
+}
+.clr {
+  clear: both;
+}
+.bar {
+  width: 100%;
+  height: 5px;
+  background-color: var(--accent1);
+  border-radius: 6px;
+  border: 1px solid var(--text-color);
+}
+#menu {
+  max-height: 0;
+  transition: max-height 0.3s ease-in-out;
+  overflow: hidden;
+}
+#menu.open {
+  max-height: 100vh;
+}
+nav a {
+  padding: 0.8rem;
+  background-color: var(--dark-black);
+  text-decoration: none;
+  font-family: var(--heading);
+  font-size: 1rem;
+}
+nav a:last-child {
+  border: none;
+}
 #main-header,
 #about,
 #projects,
-#contact {
+#contact,
+nav a {
   border-bottom: 2px solid var(--border-color);
 }
 #main-header p:first-of-type {
@@ -133,5 +167,8 @@ footer {
   }
   .soon {
     display: flex;
+  }
+  #menu-toggle {
+    display: none;
   }
 }
