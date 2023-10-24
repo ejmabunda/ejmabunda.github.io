@@ -18,13 +18,13 @@ function About() {
           who wants a site that's stuck in the past, right?
         </p>
         <p>Learning and trying out new web wizardry is my jam.</p>
-        <h3 className="mb-4">My Tech Stack:</h3>
+        <h3 className="mb-4">My Toolbox:</h3>
         <div className="d-flex justify-content-between mb-4">
-          <FontAwesomeIcon icon={faHtml5} size="2x" />
-          <FontAwesomeIcon icon={faCss3} size="2x" />
-          <FontAwesomeIcon icon={faBootstrap} size="2x" />
-          <FontAwesomeIcon icon={faJs} size="2x" />
-          <FontAwesomeIcon icon={faReact} size="2x" />
+          <FontAwesomeIcon icon={faHtml5} size="3x" />
+          <FontAwesomeIcon icon={faCss3} size="3x" />
+          <FontAwesomeIcon icon={faBootstrap} size="3x" />
+          <FontAwesomeIcon icon={faJs} size="3x" />
+          <FontAwesomeIcon icon={faReact} size="3x" />
         </div>
         <p>
           Check out my{" "}

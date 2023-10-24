@@ -8,7 +8,7 @@ function Contact() {
   return (
     <>
       <section id="contact" className="p-4">
-        <h2 className="mb-4">Let's Collaborate</h2>
+        <h2 className="mb-4">Let's Connect</h2>
         <div className="d-flex gap-3">
           <a
             href="https://www.linkedin.com/in/mjmabunda/"
@@ -32,6 +32,7 @@ function Contact() {
             <FontAwesomeIcon icon={faTwitter} /> Twitter
           </a>
         </div>
+        <form></form>
       </section>
     </>
   );

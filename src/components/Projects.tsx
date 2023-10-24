@@ -11,7 +11,7 @@ function Projects() {
             at what they do. It's all about showcasing their top-notch
             electrical products, services and company info.
           </p>
-          <div className="d-flex gap-3 align-items-center">
+          <div className="d-flex gap-3 align-items-center py-2">
             <h4 className="m-0">Tech Stack:</h4>
             <div className="d-flex gap-3 align-items-center">
               <span className="tag">HTML</span>

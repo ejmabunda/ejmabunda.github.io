@@ -1,16 +1,20 @@
-import { useState } from "react";
+{
+  /*import { useState } from "react";*/
+}
 
 function Header() {
-  const [menuVisible, setMenuVisible] = useState(false);
+  {
+    /*const [menuVisible, setMenuVisible] = useState(false);
 
   function toggleMenu() {
     setMenuVisible(!menuVisible);
+  }*/
   }
 
   return (
     <>
-      <header id="main-header" className="p-4">
-        <nav className="">
+      <header id="main-header" className="p-4 mt-5 text-center">
+        {/*<nav className="">
           <div
             id="menu-toggle"
             className="d-flex flex-column justify-content-evenly p-0 mb-2"
@@ -35,12 +39,14 @@ function Header() {
               </a>
             </div>
           </div>
-        </nav>
-        <p className="mt-5">DEVELOPER</p>
-        <h1 id="title">Modern, Responsive Web Experiences</h1>
+  </nav>*/}
+        <p className="mt-5">FRONTEND</p>
+        <h1 id="title" className="mb-5">
+          Modern, Responsive Web Experiences
+        </h1>
         <p id="subtitle">
           Hi, I’m Junior Mabunda, I craft awesome websites using cool stuff like
-          React, Bootstrap and more.
+          React, Bootstrap and more. <a href="#about">Read more</a>.
         </p>
       </header>
     </>
