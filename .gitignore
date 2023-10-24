@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# SASS files
+*.scss
+*.sass
+*.css.map
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

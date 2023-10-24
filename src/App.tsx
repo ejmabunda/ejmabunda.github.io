@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.css";
-import "./styles/App.css";
+import "./styles/styles.css";
 import Home from "./pages/Home";
 
 function App() {
