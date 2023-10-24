@@ -13,7 +13,7 @@ function Header() {
 
   return (
     <>
-      <header id="main-header" className="pb-5 container p-4">
+      <header id="main-header" className="pb-5 container p-5">
         {/*<nav className="">
           <div
             id="menu-toggle"

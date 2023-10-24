@@ -10,7 +10,7 @@ import {
 function About() {
   return (
     <>
-      <section id="about" className="p-4 container">
+      <section id="about" className="p-5 container">
         <div className="row">
           <h2 className="col-md-5">About Me</h2>
 

@@ -7,7 +7,7 @@ import {
 function Contact() {
   return (
     <>
-      <section id="contact" className="p-4 container">
+      <section id="contact" className="p-5 container">
         <div className="row">
           <h2 className="mb-4">Let's Connect</h2>
           <div className="d-flex gap-3">

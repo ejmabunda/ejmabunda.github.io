@@ -25,6 +25,11 @@ h1 {
   font-size: 3rem;
 }
 
+h2 {
+  color: rgb(89, 92, 99);
+  font-size: 1.5rem;
+}
+
 h2,
 h3,
 h4,
@@ -99,6 +104,11 @@ a {
 footer {
   font-family: "Rubik", sans-serif;
   font-size: 1rem;
+}
+
+/* Overide Bootstrap's default styles */
+.container {
+  max-width: 1320px;
 }
 
 @media (min-width: 768px) {
