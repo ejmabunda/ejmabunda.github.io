@@ -33,7 +33,7 @@ function About() {
             <p>
               Check out my{" "}
               <a
-                href="https://drive.google.com/file/d/1Ppl8bx_AGu4f7vGApfYZvaecBmwyCdNA/view?usp=sharing"
+                href="https://drive.google.com/file/d/1cl-aU5KZMNSLJ6K3lxftO7ZHqiQJsqD2/view?usp=sharing"
                 target="_blank"
                 rel="noreferrer"
               >
