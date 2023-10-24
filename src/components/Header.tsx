@@ -13,7 +13,7 @@ function Header() {
         <nav className="">
           <div
             id="menu-toggle"
-            className="d-flex flex-column justify-content-evenly p-0 mb-4"
+            className="d-flex flex-column justify-content-evenly p-0 mb-2"
             onClick={toggleMenu}
           >
             <div className="bar"></div>
@@ -24,13 +24,13 @@ function Header() {
 
           <div id="menu" className={`container ${menuVisible ? "open" : ""}`}>
             <div className="row">
-              <a href="#about" className="col-md-3">
+              <a href="#about" className="col-md-3" onClick={toggleMenu}>
                 About
               </a>
-              <a href="#about" className="col-md-3">
+              <a href="#about" className="col-md-3" onClick={toggleMenu}>
                 Projects
               </a>
-              <a href="#about" className="col-md-3">
+              <a href="#about" className="col-md-3" onClick={toggleMenu}>
                 Contact
               </a>
             </div>
