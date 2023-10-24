@@ -13,7 +13,7 @@ function Header() {
 
   return (
     <>
-      <header id="main-header" className="p-4 mt-5 text-center">
+      <header id="main-header" className="pb-5 container p-4">
         {/*<nav className="">
           <div
             id="menu-toggle"
@@ -40,14 +40,16 @@ function Header() {
             </div>
           </div>
   </nav>*/}
-        <p className="mt-5">FRONTEND</p>
-        <h1 id="title" className="mb-5">
-          Modern, Responsive Web Experiences
-        </h1>
-        <p id="subtitle">
-          Hi, I’m Junior Mabunda, I craft awesome websites using cool stuff like
-          React, Bootstrap and more. <a href="#about">Read more</a>.
-        </p>
+        <div className="row">
+          <div className="col-md-6">
+            <p className="mt-5">FRONTEND</p>
+            <h1 id="title">Junior Mabunda</h1>
+            <p id="subtitle">
+              Hi, I’m Junior Mabunda, I craft awesome websites using cool stuff
+              like React, Bootstrap and more. <a href="#about">Read more</a>.
+            </p>
+          </div>
+        </div>
       </header>
     </>
   );

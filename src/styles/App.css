@@ -112,6 +112,13 @@ nav a:last-child {
 #contact,
 nav a {
   border-bottom: 2px solid var(--border-color);
+  max-width: 1330px;
+  margin: auto;
+}
+#about,
+#projects,
+#contact {
+  background-color: var(--dark-black);
 }
 #main-header p:first-of-type {
   font-family: var(--other-text);
@@ -139,7 +146,7 @@ h4 {
 
 /* Projects */
 .project {
-  background-color: var(--dark-black);
+  background-color: var(--bg);
 }
 
 /* Footer */
@@ -148,28 +155,8 @@ footer {
   font-size: 1rem;
 }
 
-.soon h1 {
-  color: var(--accent2);
-}
-
-/* Render only mobile view */
-@media (max-width: 480px) {
-  .home {
-    display: block;
-  }
-  .soon {
-    display: none;
-  }
-}
-
-@media (min-width: 481px) {
-  .home {
-    display: none;
-  }
-  .soon {
-    display: flex;
-  }
-  #menu-toggle {
-    display: none;
+@media (min-width: 768px) {
+  h1 {
+    font-size: 5rem;
   }
 }
