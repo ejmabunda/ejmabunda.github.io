@@ -1,0 +1,12 @@
+{
+    "logo": "Junior Mabunda",
+    "title": "Junior Mabunda is a Johannesburg-based software engineering student and aspiring web developer;",
+    "subtitle": "Intent on building user-focused applications with clean design and great experiences.",
+    "contact": {
+        "title": "Contact",
+        "profiles": [
+            {"title": "GitHub", "link": "https://github.com/ejmabunda/"},
+            {"title": "LinkedIn", "link": "https://www.linkedin.com/in/ejmabunda/"}
+        ]
+    }
+}

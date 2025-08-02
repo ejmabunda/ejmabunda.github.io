@@ -1,4 +1,4 @@
 import './styles.css';
-import { intro } from './intro';
+import { header } from './header';
 
-intro();
+header();
