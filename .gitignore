@@ -1,6 +1,7 @@
-# Ignore temp SASS files
+# Ignore temp files
 *.css.map
 .sass-cache
+*~
 
 # Ignore npm generated files
 node_modules
