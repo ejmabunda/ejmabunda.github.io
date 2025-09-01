@@ -8,7 +8,7 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="rounded-full"
-          src="/pfp.jpg"
+          src="/pfp.png"
           alt="Picture fo the author"
           width={150}
           height={150}
