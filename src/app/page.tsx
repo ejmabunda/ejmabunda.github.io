@@ -75,7 +75,7 @@ export default function Home() {
                   <h3 className="font-bold">{project.name}</h3>
                   <span className={`${project.status === "in dev" ? "bg-yellow-500" : "bg-green-500"} px-3 rounded-full font-mono`}>{project.status}</span>
                 </div>
-                <p className="mb-3">{project.description}</p>
+                <p className="mb-3 font-mono">{project.description}</p>
                 <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded text-right">
                   <a href={project.link} target="_blank" className="mt-4">View Project</a>
                 </code>
