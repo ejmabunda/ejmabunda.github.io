@@ -31,13 +31,7 @@ export default function Home() {
         />
         <h1 className="text-3xl font-bold">Junior_</h1>
         <section className="font-mono text-sm/6 text-center sm:text-left">
-          <p className="mb-2 tracking-[-.01em]">
-            Software Engineering student at{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              <a href="https://www.wethinkcode.co.za" target="_blank">WeThinkCode_</a>
-            </code>
-            .
-          </p>
+          <p className="mb-2 tracking-[-.01em]">Hi, I'm Junior Mabunda.. an aspiring Software Engineer.</p>
           <p className="tracking-[-.01em]">
             Intent on building useful, high-quality applications. Experienced in modern web technologies, and currently exploring backend development.
           </p>
