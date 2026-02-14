@@ -4,7 +4,7 @@ import { FaLinkedin, FaGithub } from "react-icons/fa";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-0 gap-16 sm:p-20">
+    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen px-8 gap-16">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="rounded-full"
@@ -14,11 +14,18 @@ export default function Home() {
           height={150}
           priority
         />
-        <h1 className="text-3xl font-bold">Junior_</h1>
+        <h1 className="text-3xl font-bold pb-0">
+          Junior_
+          <span className="text-gray-500 text-sm block font-light">ejmabunda</span>
+        </h1>
+
         <section className="font-mono text-sm/6 text-center sm:text-left">
-          <p className="mb-2 tracking-[-.01em]">Hi, I am Junior Mabunda.. a Junior Developer.</p>
+          <p className="mb-2 tracking-[-.01em]">
+            Hi, I am Junior Mabunda.. a Junior Developer.
+          </p>
           <p className="tracking-[-.01em]">
-            Interested in clean architecture, system integration, and building scalable web applications.
+            Interested in clean architecture, system integration, and building
+            scalable web applications.
           </p>
         </section>
 
@@ -30,7 +37,7 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             <FaLinkedin className="text-2xl" />
-            <span >LinkedIn</span>
+            <span>LinkedIn</span>
           </a>
 
           <a
