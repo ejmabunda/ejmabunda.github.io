@@ -1,20 +1,47 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Caprasimo, Figtree } from "next/font/google";
+import Script from "next/script";
+import { profile } from "@/content/profile";
+import { site } from "@/content/site";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const caprasimo = Caprasimo({
+  variable: "--font-heading",
+  weight: "400",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const figtree = Figtree({
+  variable: "--font-body",
+  weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
+
+// Runs before hydration (next/script beforeInteractive) so the correct theme
+// is applied before first paint — avoids a flash of the wrong theme without
+// needing any React state for it.
+const THEME_INIT_SCRIPT = `(function(){try{var t=window.localStorage.getItem('portfolio-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
+
+const title = `${profile.name} — ${profile.subtitle}`;
 
 export const metadata: Metadata = {
-  title: "Junor Mabunda - Software Engineer",
-  description: "Portfolio of Junior Mabunda, Software Engineer. Building useful, high-quality solutions with modern technologies.",
+  metadataBase: new URL(`https://${site.domain}`),
+  title,
+  description: profile.bio,
+  openGraph: {
+    title,
+    description: profile.bio,
+    url: `https://${site.domain}`,
+    siteName: profile.name,
+    images: [profile.photo.src],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description: profile.bio,
+    images: [profile.photo.src],
+  },
 };
 
 export default function RootLayout({
@@ -23,10 +50,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${caprasimo.variable} ${figtree.variable}`}
+    >
+      <body className="antialiased">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
         {children}
       </body>
     </html>

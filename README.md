@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ejmabunda.dev
 
-## Getting Started
+Personal portfolio site for Matimu Mabunda — a backend-focused software
+developer. Built with Next.js (App Router), TypeScript, and Tailwind CSS v4,
+statically exported and deployed to GitHub Pages at
+[ejmabunda.dev](https://ejmabunda.dev).
 
-First, run the development server:
+## Tech stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 15** (App Router), statically exported (`output: 'export'`) since
+  the site is hosted on GitHub Pages with no server runtime.
+- **TypeScript**, **React 19**.
+- **Tailwind CSS v4**, using its CSS-first `@theme` configuration.
+- **Vitest** + **React Testing Library** for component smoke tests.
+
+## Project structure
+
+```text
+src/
+  app/               Next.js App Router entry (layout, page, global styles)
+  content/           Typed content/data — copy, links, skills, experience,
+                     education. Edit these files to change what's on the
+                     site; components read from them rather than hardcoding text.
+  components/
+    ui/              Design-system primitives (Button, Tag, SectionDivider, Eyebrow)
+    layout/          Page chrome (Nav, ThemeToggle, Footer)
+    sections/        The page's content sections (Hero, Skills, Experience, Education)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Design tokens (colors, spacing, radii, shadows, fonts) live as CSS custom
+properties in `src/app/globals.css`, mirrored into Tailwind's `@theme` block
+so both hand-authored component classes (`.btn`, `.tag`, etc.) and Tailwind
+utilities read from the same source of truth. Dark mode is a manual toggle
+(not OS-preference-based): it sets a `data-theme="dark"` attribute on
+`<html>`, persisted to `localStorage`, and every token re-resolves
+automatically under that attribute.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the local dev server |
+| `npm run build` | Production build + static export to `out/` |
+| `npm run start` | Serve the production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run Vitest component smoke tests |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the
+site (`npm run build`, producing a static export in `out/`) and publishes it
+via GitHub Pages. The custom domain is configured through `public/CNAME`
+(copied into the export output automatically, since everything in `public/`
+is copied verbatim to `out/`), pointing at `ejmabunda.dev`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Editing content
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Almost everything on the page — the bio, skill tags, work experience,
+education, and social links — is data, not markup. To update copy, edit the
+relevant file under `src/content/` rather than the components in
+`src/components/`.
