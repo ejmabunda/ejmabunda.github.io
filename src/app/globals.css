@@ -1,26 +1,450 @@
 @import "tailwindcss";
 
+/* Repoint Tailwind's `dark:` variant at our manual data-theme toggle instead
+   of prefers-color-scheme, since theme is a user choice persisted to
+   localStorage, not derived from the OS. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Organic design system — semantic tokens (reassigned for dark mode below) */
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-accent: #c67139;
+  --color-accent-700: #8c491a;
+  --color-accent-2: #7a8a5e;
+  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+
+  /* color ramps — static across themes; dark mode overrides individual
+     components (.tag-accent etc.) directly rather than reassigning these */
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-400: #c0b6a5;
+  --color-neutral-500: #a19786;
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-neutral-900: #2e2b25;
+
+  --color-accent-100: #fff2eb;
+  --color-accent-200: #ffe1d0;
+  --color-accent-300: #ffc6a5;
+  --color-accent-400: #f6a06b;
+  --color-accent-500: #d67f48;
+  --color-accent-600: #b2622d;
+  --color-accent-800: #643312;
+  --color-accent-900: #402310;
+
+  --color-accent-2-100: #f0fae1;
+  --color-accent-2-200: #e1eecc;
+  --color-accent-2-300: #ccdbb2;
+  --color-accent-2-400: #aebf92;
+  --color-accent-2-500: #8fa073;
+  --color-accent-2-600: #728157;
+  --color-accent-2-700: #56633f;
+  --color-accent-2-800: #3d472b;
+  --color-accent-2-900: #272e1b;
+
+  /* spacing — named rather than mapped onto Tailwind's numeric scale, so it
+     doesn't silently re-scale every padding/gap/margin utility in the project */
+  --spacing-xs: 4.4px;
+  --spacing-sm: 8.8px;
+  --spacing-md: 13.2px;
+  --spacing-lg: 17.6px;
+  --spacing-xl: 26.4px;
+  --spacing-2xl: 35.2px;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
 }
 
+[data-theme="dark"] {
+  --color-bg: #1c1a17;
+  --color-surface: #29251f;
+  --color-text: #cdc3b3;
+  --color-divider: color-mix(in srgb, #cdc3b3 14%, transparent);
+  --color-accent: #d68a53;
+  --color-accent-700: #d99e6d;
+  --color-accent-2: #92a175;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.65);
+}
+
+/* Tailwind v4 utility mirror — mechanical 1:1, resolved dynamically at
+   point-of-use so dark-mode reassignment above just works. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-text: var(--color-text);
+  --color-accent: var(--color-accent);
+  --color-accent-700: var(--color-accent-700);
+  --color-accent-2: var(--color-accent-2);
+  --color-divider: var(--color-divider);
+
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
+  --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
+
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-800: var(--color-accent-800);
+  --color-accent-900: var(--color-accent-900);
+
+  --color-accent-2-100: var(--color-accent-2-100);
+  --color-accent-2-200: var(--color-accent-2-200);
+  --color-accent-2-300: var(--color-accent-2-300);
+  --color-accent-2-400: var(--color-accent-2-400);
+  --color-accent-2-500: var(--color-accent-2-500);
+  --color-accent-2-600: var(--color-accent-2-600);
+  --color-accent-2-700: var(--color-accent-2-700);
+  --color-accent-2-800: var(--color-accent-2-800);
+  --color-accent-2-900: var(--color-accent-2-900);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --spacing-xs: var(--spacing-xs);
+  --spacing-sm: var(--spacing-sm);
+  --spacing-md: var(--spacing-md);
+  --spacing-lg: var(--spacing-lg);
+  --spacing-xl: var(--spacing-xl);
+  --spacing-2xl: var(--spacing-2xl);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Tailwind v4 puts its own rules in `@layer base/components/utilities`
+   (utilities always wins, regardless of source order). Anything we author
+   outside a layer counts as its own highest-priority layer and would
+   permanently block Tailwind utilities from overriding it — so our rules
+   need to opt into the same layers to compose correctly. */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading), system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--spacing-sm);
+  }
+  h1 {
+    font-size: 42px;
+  }
+  h2 {
+    font-size: 32px;
+  }
+  h3 {
+    font-size: 25px;
+  }
+  h4 {
+    font-size: 20px;
+  }
+  h5 {
+    font-size: 16px;
+  }
+  h6 {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 var(--spacing-md);
+  }
+
+  a {
+    color: var(--color-accent-700);
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    color: var(--color-accent-800);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .text-muted {
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  }
+
+  .washed {
+    filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94);
+  }
+
+  /* Themed elements transition smoothly instead of hard-cutting between modes */
+  body,
+  .btn,
+  .tag,
+  .theme-toggle,
+  .hr {
+    transition: background-color 0.2s ease, color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /* Layout */
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .hr {
+    height: 1px;
+    border: none;
+    /* top/bottom only — a shorthand `margin` here would zero out the
+       margin-left/right: auto that .wrap needs to stay centered */
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    background: var(--color-divider);
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    /* top/bottom only — a shorthand `padding` here would override the
+       padding-left/right: 40px that .wrap gives every other section */
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+  .nav-brand {
+    font-family: var(--font-heading), system-ui, sans-serif;
+    font-size: 22px;
+    margin-right: auto;
+  }
+  .nav a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .nav a:hover {
+    color: var(--color-accent);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-heading), system-ui, sans-serif;
+    font-size: 14px;
+    padding: var(--spacing-sm) calc(var(--spacing-md) * 1.2);
+    border-radius: 999px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+  .btn-primary:hover {
+    background: var(--color-accent-600);
+  }
+  .btn-primary:active {
+    background: var(--color-accent-700);
+  }
+  .btn-secondary {
+    background: transparent;
+    border-color: var(--color-divider);
+    color: var(--color-text);
+  }
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+  .btn-secondary:active {
+    background: color-mix(in srgb, var(--color-text) 14%, transparent);
+  }
+
+  [data-theme="dark"] .btn-primary {
+    background: #b9703f;
+    color: #f6ece0;
+  }
+  [data-theme="dark"] .btn-primary:hover {
+    background: #a8632f;
+  }
+  [data-theme="dark"] .btn-primary:active {
+    background: #94551f;
+  }
+  [data-theme="dark"] .btn-secondary {
+    background: var(--color-surface);
+    border-color: var(--color-divider);
+  }
+  [data-theme="dark"] .btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-text) 8%, var(--color-surface));
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .tag-accent {
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+  }
+  .tag-accent-2 {
+    background: var(--color-accent-2-100);
+    color: var(--color-accent-2-800);
+  }
+  .tag-neutral {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-800);
+  }
+  .tag-outline {
+    background: transparent;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  [data-theme="dark"] .tag-accent {
+    background: color-mix(in srgb, #d68a53 24%, #1c1a17);
+    color: #f0c9a0;
+  }
+  [data-theme="dark"] .tag-accent-2 {
+    background: color-mix(in srgb, #92a175 24%, #1c1a17);
+    color: #d3e2b8;
+  }
+  [data-theme="dark"] .tag-neutral {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 999px;
+    border: 1px solid var(--color-divider);
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .theme-toggle:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+  .theme-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  .theme-toggle .icon-sun {
+    display: none;
+  }
+  [data-theme="dark"] .theme-toggle .icon-moon {
+    display: none;
+  }
+  [data-theme="dark"] .theme-toggle .icon-sun {
+    display: block;
+  }
+
+  /* Skills */
+  .skill-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .skill-label {
+    width: 180px;
+    font-size: 13px;
+    opacity: 0.6;
+  }
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  @media (max-width: 720px) {
+    .wrap {
+      padding: 0 20px;
+    }
+    .nav {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    #about {
+      flex-direction: column;
+    }
+    h1 {
+      font-size: 36px !important;
+    }
+    .skill-row {
+      flex-direction: column !important;
+      gap: 6px !important;
+    }
+    .skill-label {
+      width: auto !important;
+    }
+  }
 }
