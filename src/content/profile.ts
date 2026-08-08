@@ -17,10 +17,10 @@ export const profile = {
             external: true,
         },
         {
-            label: "Résumé ↓",
+            label: "Résumé",
             href: site.resumeHref,
             variant: "secondary",
-            external: true,
+            kind: "preview",
         },
         {
             label: "GitHub ↗",

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import ResumePreview from "@/components/ui/ResumePreview";
 import { profile } from "@/content/profile";
 
 export default function Hero() {
@@ -23,16 +24,25 @@ export default function Hero() {
         </h3>
         <p className="max-w-[600px] text-[17px] opacity-85">{profile.bio}</p>
         <div className="flex flex-wrap gap-3">
-          {profile.heroCtas.map((cta) => (
-            <Button
-              key={cta.label}
-              variant={cta.variant}
-              href={cta.href}
-              external={cta.external}
-            >
-              {cta.label}
-            </Button>
-          ))}
+          {profile.heroCtas.map((cta) =>
+            cta.kind === "preview" ? (
+              <ResumePreview
+                key={cta.label}
+                label={cta.label}
+                href={cta.href}
+                variant={cta.variant}
+              />
+            ) : (
+              <Button
+                key={cta.label}
+                variant={cta.variant}
+                href={cta.href}
+                external={cta.external}
+              >
+                {cta.label}
+              </Button>
+            )
+          )}
         </div>
       </div>
     </section>

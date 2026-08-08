@@ -12,6 +12,8 @@ export interface HeroCta {
   href: string;
   variant: ButtonVariant;
   external?: boolean;
+  /** "preview" opens the résumé in an in-page dialog instead of navigating. */
+  kind?: "link" | "preview";
 }
 
 export interface SkillGroup {
