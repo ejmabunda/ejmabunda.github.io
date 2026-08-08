@@ -13,10 +13,14 @@ describe("Hero", () => {
     expect(screen.getByText(profile.bio)).toBeInTheDocument();
 
     profile.heroCtas.forEach((cta) => {
-      expect(screen.getByRole("link", { name: cta.label })).toHaveAttribute(
-        "href",
-        cta.href
-      );
+      if (cta.kind === "preview") {
+        expect(screen.getByRole("button", { name: cta.label })).toBeInTheDocument();
+      } else {
+        expect(screen.getByRole("link", { name: cta.label })).toHaveAttribute(
+          "href",
+          cta.href
+        );
+      }
     });
   });
 });

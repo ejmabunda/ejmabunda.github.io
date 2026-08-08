@@ -407,6 +407,74 @@
     display: block;
   }
 
+  /* Résumé preview overlay */
+  .resume-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    background: color-mix(in srgb, #201e1d 55%, transparent);
+  }
+  .resume-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(820px, 92vw);
+    height: min(88vh, 1060px);
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .resume-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    flex: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-surface);
+    font-family: var(--font-heading), system-ui, sans-serif;
+  }
+  .resume-dialog-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+  .resume-dialog-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--color-divider);
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .resume-dialog-close:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+  .resume-dialog-body {
+    flex: 1;
+    min-height: 0;
+    background: var(--color-surface);
+  }
+  .resume-dialog-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: var(--color-neutral-100);
+  }
+
   /* Skills */
   .skill-row {
     display: flex;
