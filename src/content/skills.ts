@@ -42,8 +42,8 @@ export const skills: SkillGroup[] = [
     ],
   },
   {
-    label: "Tools",
+    label: "Cloud & DevOps",
     tone: "outline",
-    items: ["Git", "GitHub", "Docker"],
+    items: ["AWS (CloudFormation, ECS, Fargate)", "CI/CD pipelines", "Docker", "Git", "GitHub"],
   },
 ];
