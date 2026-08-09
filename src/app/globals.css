@@ -236,7 +236,9 @@
   .btn,
   .tag,
   .theme-toggle,
-  .hr {
+  .hr,
+  .nav-sticky,
+  .nav-chip {
     transition: background-color 0.2s ease, color 0.2s ease,
       border-color 0.2s ease;
   }
@@ -259,14 +261,23 @@
   }
 
   /* Nav */
+  .nav-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-divider);
+  }
   .nav {
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
     /* top/bottom only — a shorthand `padding` here would override the
-       padding-left/right: 40px that .wrap gives every other section */
-    padding-top: 24px;
-    padding-bottom: 24px;
+       padding-left/right: 40px that .wrap gives every other section.
+       Reduced from 24px now that the nav is sticky, so it takes less
+       permanent header space. */
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
   .nav-brand {
     font-family: var(--font-heading), system-ui, sans-serif;
@@ -280,6 +291,36 @@
   }
   .nav a:hover {
     color: var(--color-accent);
+  }
+  .nav .btn-primary {
+    /* at the sticky bar's reduced padding, the label can shrink and wrap
+       to two lines without this */
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .nav-mobile-row {
+    display: none;
+    gap: 8px;
+    padding-bottom: 14px;
+    overflow-x: auto;
+  }
+  .nav-chip {
+    flex: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 13px;
+    border: 1px solid var(--color-divider);
+    text-decoration: none;
+  }
+  .nav-chip:hover {
+    color: var(--color-accent);
+  }
+  [data-theme="dark"] .nav-chip {
+    background: #29251f;
+    border-color: transparent;
   }
 
   /* Buttons */
@@ -497,9 +538,11 @@
     .wrap {
       padding: 0 20px;
     }
-    .nav {
-      flex-wrap: wrap;
-      gap: 12px;
+    .nav-links-desktop {
+      display: none;
+    }
+    .nav-mobile-row {
+      display: flex;
     }
     #about {
       flex-direction: column;
