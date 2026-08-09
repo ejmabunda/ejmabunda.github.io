@@ -350,10 +350,10 @@
   }
   .nav-menu-panel {
     position: fixed;
-    /* matches .nav's rendered height (16px padding + 40px toggle + 16px
-       padding + 1px border) — hamburger only shows at this breakpoint, so
-       the nav bar's height is otherwise constant */
-    top: 73px;
+    /* matches .nav's rendered height at the mobile breakpoint (20px
+       padding + 40px toggle + 20px padding + 1px border) — the hamburger
+       only shows there, so the nav bar's height is otherwise constant */
+    top: 81px;
     left: 0;
     right: 0;
     z-index: 1;
@@ -600,6 +600,12 @@
     }
     .nav-menu-toggle {
       display: inline-flex;
+    }
+    /* extra breathing room around the 40px toggle circles, which otherwise
+       read as touching the top of the screen and the nav's bottom border */
+    .nav {
+      padding-top: 20px;
+      padding-bottom: 20px;
     }
     #about {
       flex-direction: column;
