@@ -1,5 +1,6 @@
 import Button from "@/components/ui/Button";
 import ThemeToggle from "./ThemeToggle";
+import MobileMenu from "./MobileMenu";
 import { site } from "@/content/site";
 
 export default function Nav() {
@@ -12,18 +13,16 @@ export default function Nav() {
             {link.label}
           </a>
         ))}
-        <Button variant="primary" href={`mailto:${site.email}`}>
+        <Button
+          variant="primary"
+          href={`mailto:${site.email}`}
+          className="nav-cta-desktop"
+        >
           get in touch
         </Button>
         <ThemeToggle />
+        <MobileMenu />
       </nav>
-      <div className="nav-mobile-row wrap">
-        {site.navLinks.map((link) => (
-          <a key={link.href} href={link.href} className="nav-chip">
-            {link.label}
-          </a>
-        ))}
-      </div>
     </div>
   );
 }

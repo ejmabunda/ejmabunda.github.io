@@ -150,6 +150,23 @@
     box-sizing: border-box;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Offsets in-page anchor targets so the sticky nav (~73px tall) doesn't
+     cover the section heading after a smooth-scroll jump. */
+  #about,
+  #exp,
+  #skills {
+    scroll-margin-top: 96px;
+  }
+
   body {
     margin: 0;
     background: var(--color-bg);
@@ -236,9 +253,9 @@
   .btn,
   .tag,
   .theme-toggle,
+  .nav-menu-toggle,
   .hr,
-  .nav-sticky,
-  .nav-chip {
+  .nav-sticky {
     transition: background-color 0.2s ease, color 0.2s ease,
       border-color 0.2s ease;
   }
@@ -299,28 +316,65 @@
     flex: none;
   }
 
-  .nav-mobile-row {
+  /* Mobile hamburger menu */
+  .nav-menu-toggle {
     display: none;
-    gap: 8px;
-    padding-bottom: 14px;
-    overflow-x: auto;
-  }
-  .nav-chip {
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
     flex: none;
-    padding: 8px 16px;
     border-radius: 999px;
-    background: var(--color-surface);
-    color: var(--color-text);
-    font-size: 13px;
     border: 1px solid var(--color-divider);
-    text-decoration: none;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
   }
-  .nav-chip:hover {
-    color: var(--color-accent);
+  .nav-menu-toggle:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
   }
-  [data-theme="dark"] .nav-chip {
-    background: #29251f;
-    border-color: transparent;
+  .nav-menu-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  .nav-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    /* negative z-index keeps it behind .nav's own (unpositioned, in-flow)
+       content within the sticky bar's stacking context, so the brand and
+       toggle buttons stay visible and clickable above the dimmed page */
+    z-index: -1;
+    background: color-mix(in srgb, #201e1d 45%, transparent);
+  }
+  .nav-menu-panel {
+    position: fixed;
+    /* matches .nav's rendered height (16px padding + 40px toggle + 16px
+       padding + 1px border) — hamburger only shows at this breakpoint, so
+       the nav bar's height is otherwise constant */
+    top: 73px;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 16px;
+    padding-bottom: 20px;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--color-divider);
+  }
+  /* higher specificity than `.nav a` (which would otherwise win on font-size) */
+  .nav-menu-panel .nav-menu-link {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-divider);
+    font-size: 15px;
+  }
+  .nav-menu-cta {
+    justify-content: center;
+    margin-top: 12px;
   }
 
   /* Buttons */
@@ -541,8 +595,11 @@
     .nav-links-desktop {
       display: none;
     }
-    .nav-mobile-row {
-      display: flex;
+    .nav-cta-desktop {
+      display: none;
+    }
+    .nav-menu-toggle {
+      display: inline-flex;
     }
     #about {
       flex-direction: column;
