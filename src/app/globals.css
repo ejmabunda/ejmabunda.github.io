@@ -150,6 +150,23 @@
     box-sizing: border-box;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Offsets in-page anchor targets so the sticky nav (~73px tall) doesn't
+     cover the section heading after a smooth-scroll jump. */
+  #about,
+  #exp,
+  #skills {
+    scroll-margin-top: 96px;
+  }
+
   body {
     margin: 0;
     background: var(--color-bg);
@@ -236,7 +253,9 @@
   .btn,
   .tag,
   .theme-toggle,
-  .hr {
+  .nav-menu-toggle,
+  .hr,
+  .nav-sticky {
     transition: background-color 0.2s ease, color 0.2s ease,
       border-color 0.2s ease;
   }
@@ -259,14 +278,23 @@
   }
 
   /* Nav */
+  .nav-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-divider);
+  }
   .nav {
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
     /* top/bottom only — a shorthand `padding` here would override the
-       padding-left/right: 40px that .wrap gives every other section */
-    padding-top: 24px;
-    padding-bottom: 24px;
+       padding-left/right: 40px that .wrap gives every other section.
+       Reduced from 24px now that the nav is sticky, so it takes less
+       permanent header space. */
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
   .nav-brand {
     font-family: var(--font-heading), system-ui, sans-serif;
@@ -280,6 +308,73 @@
   }
   .nav a:hover {
     color: var(--color-accent);
+  }
+  .nav .btn-primary {
+    /* at the sticky bar's reduced padding, the label can shrink and wrap
+       to two lines without this */
+    white-space: nowrap;
+    flex: none;
+  }
+
+  /* Mobile hamburger menu */
+  .nav-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 999px;
+    border: 1px solid var(--color-divider);
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .nav-menu-toggle:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+  .nav-menu-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  .nav-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    /* negative z-index keeps it behind .nav's own (unpositioned, in-flow)
+       content within the sticky bar's stacking context, so the brand and
+       toggle buttons stay visible and clickable above the dimmed page */
+    z-index: -1;
+    background: color-mix(in srgb, #201e1d 45%, transparent);
+  }
+  .nav-menu-panel {
+    position: fixed;
+    /* matches .nav's rendered height at the mobile breakpoint (20px
+       padding + 40px toggle + 20px padding + 1px border) — the hamburger
+       only shows there, so the nav bar's height is otherwise constant */
+    top: 81px;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 16px;
+    padding-bottom: 20px;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--color-divider);
+  }
+  /* higher specificity than `.nav a` (which would otherwise win on font-size) */
+  .nav-menu-panel .nav-menu-link {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-divider);
+    font-size: 15px;
+  }
+  .nav-menu-cta {
+    justify-content: center;
+    margin-top: 12px;
   }
 
   /* Buttons */
@@ -497,9 +592,20 @@
     .wrap {
       padding: 0 20px;
     }
+    .nav-links-desktop {
+      display: none;
+    }
+    .nav-cta-desktop {
+      display: none;
+    }
+    .nav-menu-toggle {
+      display: inline-flex;
+    }
+    /* extra breathing room around the 40px toggle circles, which otherwise
+       read as touching the top of the screen and the nav's bottom border */
     .nav {
-      flex-wrap: wrap;
-      gap: 12px;
+      padding-top: 20px;
+      padding-bottom: 20px;
     }
     #about {
       flex-direction: column;
