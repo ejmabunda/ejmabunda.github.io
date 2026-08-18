@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import ResumePreview from "@/components/ui/ResumePreview";
+import Skeleton from "@/components/ui/Skeleton";
 import { profile } from "@/content/profile";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -25,9 +26,13 @@ export default function Hero() {
       <div>
         {profileState.status === "loading" && (
           <div aria-busy="true" aria-label="Loading profile">
-            <div className="mb-3 h-[50px] w-[320px] max-w-full animate-pulse rounded bg-accent-700/10" />
-            <div className="mb-5 h-[22px] w-[280px] max-w-full animate-pulse rounded bg-accent-700/10" />
-            <div className="h-[70px] w-[600px] max-w-full animate-pulse rounded bg-accent-700/10" />
+            <Skeleton height="50px" className="mb-3 w-[320px] max-w-full" />
+            <Skeleton height="22px" className="mb-5 w-[280px] max-w-full" />
+            <div className="max-w-[600px] space-y-2">
+              <Skeleton height="20px" />
+              <Skeleton height="20px" />
+              <Skeleton height="20px" className="w-3/5" />
+            </div>
           </div>
         )}
 

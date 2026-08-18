@@ -36,12 +36,14 @@ describe("Hero", () => {
     });
   });
 
-  it("shows a loading placeholder while the profile is in flight", () => {
+  it("shows a sweep-shimmer skeleton while the profile is in flight", () => {
     setProfileState({ status: "loading" });
-    render(<Hero />);
+    const { container } = render(<Hero />);
 
-    expect(screen.getByLabelText("Loading profile")).toBeInTheDocument();
+    const placeholder = screen.getByLabelText("Loading profile");
+    expect(placeholder).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
+    expect(container.querySelectorAll(".sk-sweep")).toHaveLength(5);
   });
 
   it("renders the live title, headline, and subtitle on success", () => {
