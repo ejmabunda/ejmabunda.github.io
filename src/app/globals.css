@@ -588,6 +588,63 @@
     gap: 6px;
   }
 
+  /* Skeleton loading states — reused wherever a section renders while its
+     content is still in flight (see components/ui/Skeleton.tsx). Base uses
+     --color-surface rather than the (theme-static) neutral ramp, since a
+     large fill block needs to stay dark in dark mode. */
+  .sk {
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* "Sweep" — a soft accent highlight sweeping left-to-right on a loop.
+     Used for the hero/profile section while its content is loading. */
+  .sk-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      color-mix(in srgb, var(--color-accent) 35%, white) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: sk-sweep 1.8s ease-in-out infinite;
+  }
+  @keyframes sk-sweep {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  /* "Wave" — pulses between the surface fill and an accent tint. Intended
+     for sequences (e.g. a timeline) via each item's `delayMs`, so the glow
+     visibly travels down the list rather than pulsing in unison. */
+  .sk-wave {
+    animation: sk-waveglow 1.4s ease-in-out infinite;
+  }
+  @keyframes sk-waveglow {
+    0%,
+    100% {
+      background: var(--color-surface);
+    }
+    50% {
+      background: color-mix(in srgb, var(--color-accent) 30%, var(--color-surface));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sk-sweep::after {
+      animation: none;
+    }
+    .sk-wave {
+      animation: none;
+    }
+  }
+
   @media (max-width: 720px) {
     .wrap {
       padding: 0 20px;
