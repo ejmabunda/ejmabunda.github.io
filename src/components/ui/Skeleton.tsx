@@ -21,7 +21,7 @@ const ROUNDED_CLASS: Record<SkeletonRounded, string> = {
 };
 
 export default function Skeleton({
-  width = "100%",
+  width,
   height = "1em",
   rounded = "sm",
   variant = "sweep",
