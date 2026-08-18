@@ -28,9 +28,9 @@ export default function Hero() {
           <div aria-busy="true" aria-label="Loading profile">
             <Skeleton height="50px" className="mb-3 w-[320px] max-w-full" />
             <Skeleton height="22px" className="mb-5 w-[280px] max-w-full" />
-            <div className="max-w-[600px] space-y-2">
-              <Skeleton height="20px" />
-              <Skeleton height="20px" />
+            <div className="max-w-[600px] space-y-2 mb-[var(--spacing-md)]">
+              <Skeleton height="20px" className="w-full" />
+              <Skeleton height="20px" className="w-[88%]" />
               <Skeleton height="20px" className="w-3/5" />
             </div>
           </div>
