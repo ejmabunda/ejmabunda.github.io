@@ -19,8 +19,10 @@ const figtree = Figtree({
 
 // Runs before hydration (next/script beforeInteractive) so the correct theme
 // is applied before first paint — avoids a flash of the wrong theme without
-// needing any React state for it.
-const THEME_INIT_SCRIPT = `(function(){try{var t=window.localStorage.getItem('portfolio-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
+// needing any React state for it. Mirrors ThemeToggle's mode resolution:
+// explicit 'dark'/'light' win outright, and anything else (including no
+// stored preference yet) falls back to the OS setting.
+const THEME_INIT_SCRIPT = `(function(){try{var t=window.localStorage.getItem('portfolio-theme');var dark=t==='dark'||(t!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
 
 const title = `${profile.name} — ${profile.subtitle}`;
 
