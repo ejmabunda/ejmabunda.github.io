@@ -35,6 +35,21 @@ for (const target of [globalThis, window] as const) {
   });
 }
 
+// jsdom doesn't implement matchMedia; ThemeToggle uses it to resolve/watch
+// the OS color-scheme preference for "system" mode. Default to "not dark".
+for (const target of [globalThis, window] as const) {
+  Object.defineProperty(target, "matchMedia", {
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+    writable: true,
+    configurable: true,
+  });
+}
+
 // next/image needs a real Next.js server/build pipeline to optimize images;
 // under Vitest it's swapped for a plain <img> so components using it are
 // still smoke-testable.

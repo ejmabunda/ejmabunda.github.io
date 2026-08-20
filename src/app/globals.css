@@ -492,13 +492,21 @@
     height: 18px;
     display: block;
   }
-  .theme-toggle .icon-sun {
+  .theme-toggle .icon-sun,
+  .theme-toggle .icon-system {
     display: none;
   }
   [data-theme="dark"] .theme-toggle .icon-moon {
     display: none;
   }
   [data-theme="dark"] .theme-toggle .icon-sun {
+    display: block;
+  }
+  .theme-toggle[data-mode="system"] .icon-moon,
+  .theme-toggle[data-mode="system"] .icon-sun {
+    display: none;
+  }
+  .theme-toggle[data-mode="system"] .icon-system {
     display: block;
   }
 
