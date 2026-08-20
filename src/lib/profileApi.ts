@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "./config";
+
 export interface ProfileApiData {
   id: number;
   title: string;
@@ -5,8 +7,20 @@ export interface ProfileApiData {
   subtitle: string;
 }
 
-const PROFILE_API_URL =
-  "https://ejmabunda-web-api-dfg5bzfbh2c8e3h5.southafricanorth-01.azurewebsites.net/api/profile";
+export interface ProfileInput {
+  title: string;
+  headline: string;
+  subtitle: string;
+}
+
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Unauthorized");
+    this.name = "UnauthorizedError";
+  }
+}
+
+const PROFILE_ENDPOINT = () => `${API_BASE_URL}/api/Profile`;
 
 const REQUEST_TIMEOUT_MS = 10_000;
 // The backing DB is a serverless tier that suspends after inactivity, so the
@@ -18,11 +32,11 @@ function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchOnce(): Promise<ProfileApiData | null> {
+async function fetchProfileOnce(): Promise<ProfileApiData | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const res = await fetch(PROFILE_API_URL, { signal: controller.signal });
+    const res = await fetch(PROFILE_ENDPOINT(), { signal: controller.signal });
     // The profile is a DB singleton; a missing row is "no data", not an
     // error, and retrying won't change that.
     if (res.status === 404) return null;
@@ -33,11 +47,11 @@ async function fetchOnce(): Promise<ProfileApiData | null> {
   }
 }
 
-async function fetchWithRetry(): Promise<ProfileApiData | null> {
+async function fetchProfileWithRetry(): Promise<ProfileApiData | null> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     try {
-      return await fetchOnce();
+      return await fetchProfileOnce();
     } catch (err) {
       lastError = err;
       if (attempt < RETRY_DELAYS_MS.length) {
@@ -57,13 +71,70 @@ let cachedProfile: Promise<ProfileApiData | null> | null = null;
  */
 export function getProfile(): Promise<ProfileApiData | null> {
   if (!cachedProfile) {
-    cachedProfile = fetchWithRetry().catch((err) => {
+    cachedProfile = fetchProfileWithRetry().catch((err) => {
       // Don't cache a permanent failure — let a later call try again.
       cachedProfile = null;
       throw err;
     });
   }
   return cachedProfile;
+}
+
+/**
+ * Same as getProfile, but bypasses the cache — the admin dashboard needs the
+ * current record on every visit (including right after a create/delete),
+ * not the value from whenever the public page first loaded it.
+ */
+export function getProfileFresh(): Promise<ProfileApiData | null> {
+  return fetchProfileWithRetry();
+}
+
+function authHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export async function createProfile(
+  token: string,
+  input: ProfileInput
+): Promise<ProfileApiData> {
+  const res = await fetch(PROFILE_ENDPOINT(), {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Create profile failed with ${res.status}`);
+  return (await res.json()) as ProfileApiData;
+}
+
+export async function updateProfile(
+  token: string,
+  input: Partial<ProfileInput>
+): Promise<ProfileApiData> {
+  const res = await fetch(PROFILE_ENDPOINT(), {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Update profile failed with ${res.status}`);
+  return (await res.json()) as ProfileApiData;
+}
+
+export async function deleteProfile(token: string): Promise<void> {
+  const res = await fetch(PROFILE_ENDPOINT(), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  // A 404 means there's already nothing to delete — that's the caller's
+  // goal state, not a failure.
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Delete profile failed with ${res.status}`);
+  }
 }
 
 export function __resetProfileCacheForTests() {

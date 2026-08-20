@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __resetProfileCacheForTests,
+  createProfile,
+  deleteProfile,
   getProfile,
+  getProfileFresh,
+  UnauthorizedError,
+  updateProfile,
   type ProfileApiData,
 } from "./profileApi";
 
@@ -85,5 +90,89 @@ describe("profileApi", () => {
 
     expect(retryResult).toEqual(sampleProfile);
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("getProfileFresh bypasses the cache used by getProfile", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, sampleProfile));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getProfile();
+    await getProfileFresh();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  describe("createProfile", () => {
+    it("posts the input and returns the created profile", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse(201, sampleProfile));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const input = { title: "t", headline: "h", subtitle: "s" };
+      const result = await createProfile("token-abc", input);
+
+      expect(result).toEqual(sampleProfile);
+      const [, init] = fetchMock.mock.calls[0];
+      expect(init).toMatchObject({ method: "POST" });
+      expect(init.headers.Authorization).toBe("Bearer token-abc");
+      expect(JSON.parse(init.body)).toEqual(input);
+    });
+
+    it("throws UnauthorizedError on 401", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(401)));
+
+      await expect(
+        createProfile("expired", { title: "t", headline: "h", subtitle: "s" })
+      ).rejects.toThrow(UnauthorizedError);
+    });
+  });
+
+  describe("updateProfile", () => {
+    it("puts the input and returns the updated profile", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, sampleProfile));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const result = await updateProfile("token-abc", { title: "new title" });
+
+      expect(result).toEqual(sampleProfile);
+      const [, init] = fetchMock.mock.calls[0];
+      expect(init).toMatchObject({ method: "PUT" });
+      expect(JSON.parse(init.body)).toEqual({ title: "new title" });
+    });
+
+    it("throws UnauthorizedError on 401", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(401)));
+
+      await expect(updateProfile("expired", { title: "x" })).rejects.toThrow(
+        UnauthorizedError
+      );
+    });
+  });
+
+  describe("deleteProfile", () => {
+    it("resolves on 204", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(204)));
+
+      await expect(deleteProfile("token-abc")).resolves.toBeUndefined();
+    });
+
+    it("treats 404 as already-deleted rather than an error", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(404)));
+
+      await expect(deleteProfile("token-abc")).resolves.toBeUndefined();
+    });
+
+    it("throws UnauthorizedError on 401", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(401)));
+
+      await expect(deleteProfile("expired")).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("throws a generic error on other failures", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(500)));
+
+      await expect(deleteProfile("token-abc")).rejects.toThrow(
+        "Delete profile failed with 500"
+      );
+    });
   });
 });
