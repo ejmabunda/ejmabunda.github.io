@@ -832,7 +832,7 @@
   }
   .admin-textarea {
     margin-bottom: 16px;
-    min-height: 64px;
+    min-height: 140px;
     resize: vertical;
   }
 
