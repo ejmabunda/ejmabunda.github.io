@@ -3,35 +3,48 @@
 import { useCallback, useEffect, useState } from "react";
 import LoginForm from "@/components/admin/LoginForm";
 import ProfileEditor from "@/components/admin/ProfileEditor";
-import {
-  clearStoredToken,
-  getStoredToken,
-  setStoredToken,
-} from "@/lib/authApi";
+import { logout, refreshAccessToken } from "@/lib/authApi";
 
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
 
-  // Reading sessionStorage must happen after mount (it isn't available
-  // during server rendering), so the first paint always assumes logged-out.
+  // The access token lives only in memory. On mount, try to mint a fresh one
+  // from the HttpOnly refresh cookie so a returning admin skips the login form.
   useEffect(() => {
-    setToken(getStoredToken());
+    let cancelled = false;
+    refreshAccessToken()
+      .then((fresh) => {
+        if (!cancelled && fresh) setToken(fresh);
+      })
+      .catch(() => {
+        // no usable session — fall through to the login form
+      })
+      .finally(() => {
+        if (!cancelled) setChecking(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleLoginSuccess = useCallback((newToken: string) => {
-    setStoredToken(newToken);
     setToken(newToken);
   }, []);
 
   const handleLoggedOut = useCallback(() => {
-    clearStoredToken();
+    void logout();
     setToken(null);
   }, []);
 
   return (
     <div className="admin-page">
-      {token ? (
-        <ProfileEditor token={token} onLoggedOut={handleLoggedOut} />
+      {checking ? null : token ? (
+        <ProfileEditor
+          token={token}
+          onTokenRefreshed={setToken}
+          onLoggedOut={handleLoggedOut}
+        />
       ) : (
         <LoginForm onSuccess={handleLoginSuccess} />
       )}
