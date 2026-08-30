@@ -8,6 +8,7 @@ import {
   updateProfile,
   UnauthorizedError,
 } from "@/lib/profileApi";
+import { refreshAccessToken } from "@/lib/authApi";
 
 vi.mock("@/lib/profileApi", () => ({
   getProfileFresh: vi.fn(),
@@ -17,10 +18,15 @@ vi.mock("@/lib/profileApi", () => ({
   UnauthorizedError: class UnauthorizedError extends Error {},
 }));
 
+vi.mock("@/lib/authApi", () => ({
+  refreshAccessToken: vi.fn(),
+}));
+
 const getProfileFreshMock = vi.mocked(getProfileFresh);
 const createProfileMock = vi.mocked(createProfile);
 const updateProfileMock = vi.mocked(updateProfile);
 const deleteProfileMock = vi.mocked(deleteProfile);
+const refreshAccessTokenMock = vi.mocked(refreshAccessToken);
 
 const sampleProfile = {
   id: 1,
@@ -37,7 +43,7 @@ afterEach(() => {
 describe("ProfileEditor", () => {
   it("renders the create form when no profile exists", async () => {
     getProfileFreshMock.mockResolvedValue(null);
-    render(<ProfileEditor token="tok" onLoggedOut={vi.fn()} />);
+    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
 
     expect(
       await screen.findByRole("heading", { name: "Create your profile" })
@@ -48,7 +54,7 @@ describe("ProfileEditor", () => {
 
   it("renders the edit form pre-filled when a profile exists", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
-    render(<ProfileEditor token="tok" onLoggedOut={vi.fn()} />);
+    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
 
     expect(
       await screen.findByRole("heading", { name: "Edit your profile" })
@@ -61,7 +67,7 @@ describe("ProfileEditor", () => {
 
   it("shows a load-error state when fetching the profile fails", async () => {
     getProfileFreshMock.mockRejectedValue(new Error("network error"));
-    render(<ProfileEditor token="tok" onLoggedOut={vi.fn()} />);
+    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
 
     expect(
       await screen.findByRole("heading", { name: "Couldn't load profile" })
@@ -71,7 +77,7 @@ describe("ProfileEditor", () => {
   it("creates a profile and shows the success banner", async () => {
     getProfileFreshMock.mockResolvedValue(null);
     createProfileMock.mockResolvedValue(sampleProfile);
-    render(<ProfileEditor token="tok" onLoggedOut={vi.fn()} />);
+    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
 
     await screen.findByRole("heading", { name: "Create your profile" });
     fireEvent.change(screen.getByLabelText("Title"), {
@@ -100,11 +106,16 @@ describe("ProfileEditor", () => {
     ).toBeInTheDocument();
   });
 
-  it("logs out when saving hits an expired token", async () => {
+  it("logs out when saving 401s and the token can't be refreshed", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
     updateProfileMock.mockRejectedValue(new UnauthorizedError());
+    refreshAccessTokenMock.mockResolvedValue(null);
     const onLoggedOut = vi.fn();
-    render(<ProfileEditor token="tok" onLoggedOut={onLoggedOut} />);
+    render(<ProfileEditor
+        token="tok"
+        onTokenRefreshed={vi.fn()}
+        onLoggedOut={onLoggedOut}
+      />);
 
     await screen.findByRole("heading", { name: "Edit your profile" });
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -112,10 +123,43 @@ describe("ProfileEditor", () => {
     await waitFor(() => expect(onLoggedOut).toHaveBeenCalledTimes(1));
   });
 
+  it("refreshes the access token on a 401 and retries the save", async () => {
+    getProfileFreshMock.mockResolvedValue(sampleProfile);
+    updateProfileMock
+      .mockRejectedValueOnce(new UnauthorizedError())
+      .mockResolvedValueOnce(sampleProfile);
+    refreshAccessTokenMock.mockResolvedValue("new-tok");
+    const onTokenRefreshed = vi.fn();
+    const onLoggedOut = vi.fn();
+    render(
+      <ProfileEditor
+        token="tok"
+        onTokenRefreshed={onTokenRefreshed}
+        onLoggedOut={onLoggedOut}
+      />
+    );
+
+    await screen.findByRole("heading", { name: "Edit your profile" });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Profile saved. Changes are live now.")
+      ).toBeInTheDocument()
+    );
+    expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok");
+    expect(updateProfileMock).toHaveBeenNthCalledWith(2, "new-tok", {
+      title: sampleProfile.title,
+      headline: sampleProfile.headline,
+      subtitle: sampleProfile.subtitle,
+    });
+    expect(onLoggedOut).not.toHaveBeenCalled();
+  });
+
   it("deletes the profile via the confirmation modal and returns to the create state", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
     deleteProfileMock.mockResolvedValue(undefined);
-    render(<ProfileEditor token="tok" onLoggedOut={vi.fn()} />);
+    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
 
     await screen.findByRole("heading", { name: "Edit your profile" });
     fireEvent.click(screen.getByText("Delete profile"));
@@ -133,7 +177,11 @@ describe("ProfileEditor", () => {
   it("calls onLoggedOut when the log-out link is clicked", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
     const onLoggedOut = vi.fn();
-    render(<ProfileEditor token="tok" onLoggedOut={onLoggedOut} />);
+    render(<ProfileEditor
+        token="tok"
+        onTokenRefreshed={vi.fn()}
+        onLoggedOut={onLoggedOut}
+      />);
 
     await screen.findByRole("heading", { name: "Edit your profile" });
     fireEvent.click(screen.getByText("log out"));

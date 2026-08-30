@@ -10,10 +10,12 @@ import {
   UnauthorizedError,
   type ProfileApiData,
 } from "@/lib/profileApi";
+import { refreshAccessToken } from "@/lib/authApi";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
 interface ProfileEditorProps {
   token: string;
+  onTokenRefreshed: (token: string) => void;
   onLoggedOut: () => void;
 }
 
@@ -23,6 +25,7 @@ type SaveStatus = "idle" | "saving" | "success" | "error";
 
 export default function ProfileEditor({
   token,
+  onTokenRefreshed,
   onLoggedOut,
 }: ProfileEditorProps) {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
@@ -65,15 +68,32 @@ export default function ProfileEditor({
     }
   }
 
+  // Runs an authed call with the current access token. Access tokens are
+  // short-lived, so on a 401 we mint a fresh one from the refresh cookie and
+  // retry once. If the refresh fails the original UnauthorizedError propagates
+  // and the caller's catch handles the log-out.
+  async function runAuthed<T>(call: (token: string) => Promise<T>): Promise<T> {
+    try {
+      return await call(token);
+    } catch (err) {
+      if (!(err instanceof UnauthorizedError)) throw err;
+      const fresh = await refreshAccessToken();
+      if (!fresh) throw err;
+      onTokenRefreshed(fresh);
+      return call(fresh);
+    }
+  }
+
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     if (saveStatus === "saving") return;
     setSaveStatus("saving");
     try {
-      const data =
+      const data = await runAuthed((t) =>
         mode === "empty"
-          ? await createProfile(token, { title, headline, subtitle })
-          : await updateProfile(token, { title, headline, subtitle });
+          ? createProfile(t, { title, headline, subtitle })
+          : updateProfile(t, { title, headline, subtitle })
+      );
       applyProfile(data);
       setSaveStatus("success");
     } catch (err) {
@@ -89,7 +109,7 @@ export default function ProfileEditor({
     if (deleting) return;
     setDeleting(true);
     try {
-      await deleteProfile(token);
+      await runAuthed((t) => deleteProfile(t));
       setShowDeleteModal(false);
       applyProfile(null);
       setSaveStatus("idle");
