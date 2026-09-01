@@ -6,12 +6,21 @@ interface DeleteConfirmModalProps {
   deleting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  body?: string;
+  /** Verb shown on the confirm button (defaults to "Delete" / "Deleting…"). */
+  confirmLabel?: string;
+  confirmingLabel?: string;
 }
 
 export default function DeleteConfirmModal({
   deleting,
   onCancel,
   onConfirm,
+  title = "Delete profile?",
+  body = "This removes your public profile information from the site. This can't be undone.",
+  confirmLabel = "Delete",
+  confirmingLabel = "Deleting…",
 }: DeleteConfirmModalProps) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -35,12 +44,9 @@ export default function DeleteConfirmModal({
         aria-labelledby="admin-delete-heading"
       >
         <h2 id="admin-delete-heading" className="admin-h2">
-          Delete profile?
+          {title}
         </h2>
-        <p className="admin-subtext">
-          This removes your public profile information from the site. This
-          can&apos;t be undone.
-        </p>
+        <p className="admin-subtext">{body}</p>
         <div className="admin-modal-actions">
           <button
             type="button"
@@ -56,7 +62,7 @@ export default function DeleteConfirmModal({
             onClick={onConfirm}
             disabled={deleting}
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {deleting ? confirmingLabel : confirmLabel}
           </button>
         </div>
       </div>

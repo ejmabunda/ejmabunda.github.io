@@ -17,6 +17,11 @@ interface ProfileEditorProps {
   token: string;
   onTokenRefreshed: (token: string) => void;
   onLoggedOut: () => void;
+  /**
+   * When rendered inside the dashboard shell, the shell already provides the
+   * page frame and the back/log-out bar — skip our own so they aren't doubled.
+   */
+  embedded?: boolean;
 }
 
 type LoadStatus = "loading" | "loaded" | "error";
@@ -27,6 +32,7 @@ export default function ProfileEditor({
   token,
   onTokenRefreshed,
   onLoggedOut,
+  embedded = false,
 }: ProfileEditorProps) {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
   const [mode, setMode] = useState<Mode>("empty");
@@ -130,17 +136,8 @@ export default function ProfileEditor({
 
   const isPopulated = mode === "populated";
 
-  return (
-    <div className="admin-screen-wrap">
-      <div className="admin-top-bar">
-        <Link href="/" className="admin-top-link">
-          ← back to site
-        </Link>
-        <a href="#" className="admin-top-link" onClick={handleLogOut}>
-          log out
-        </a>
-      </div>
-
+  const content = (
+    <>
       {loadStatus === "loading" && (
         <div className="admin-card">
           <p className="admin-subtext">Loading…</p>
@@ -252,6 +249,22 @@ export default function ProfileEditor({
           onConfirm={handleDelete}
         />
       )}
+    </>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div className="admin-screen-wrap">
+      <div className="admin-top-bar">
+        <Link href="/" className="admin-top-link">
+          ← back to site
+        </Link>
+        <a href="#" className="admin-top-link" onClick={handleLogOut}>
+          log out
+        </a>
+      </div>
+      {content}
     </div>
   );
 }
