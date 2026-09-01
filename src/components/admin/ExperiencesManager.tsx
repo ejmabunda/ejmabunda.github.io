@@ -216,7 +216,7 @@ export default function ExperiencesManager({
               </div>
               <div>
                 <label className="admin-label" htmlFor="exp-end">
-                  End date <span className="admin-faint">(blank if ongoing)</span>
+                  End date <span className="admin-faint">(optional)</span>
                 </label>
                 <input
                   id="exp-end"

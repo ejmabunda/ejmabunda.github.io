@@ -1078,13 +1078,19 @@
   .admin-experience-dates {
     display: flex;
     flex-wrap: wrap;
+    /* bottom-align so both inputs stay level even when one label wraps */
+    align-items: flex-end;
     gap: 12px;
+    margin-bottom: 16px;
   }
   .admin-experience-dates > div {
     flex: 1 1 160px;
+    display: flex;
+    flex-direction: column;
   }
   .admin-experience-dates .admin-input-plain {
     width: 100%;
+    margin-bottom: 0;
   }
   .admin-experience-skills {
     display: flex;
