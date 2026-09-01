@@ -14,8 +14,8 @@ statically exported and deployed to GitHub Pages at
 - **Vitest** + **React Testing Library** for component and API-client tests.
 
 The public site is static. The `/admin` route is a client-only screen that
-talks to the [.NET portfolio API](../backend) to edit profile and skills
-content live.
+talks to the [.NET portfolio API](../backend) to edit profile, skills, and
+experience content live.
 
 ## Project structure
 
@@ -24,17 +24,21 @@ src/
   app/
     page.tsx           Public landing page (Hero, Skills, Experience, Education)
     admin/             Client-only admin screen (noindex) — login + dashboard
-  content/             Typed content/data — copy, links, experience, education.
-                       Edit these to change static copy; components read from
-                       them rather than hardcoding.
+  content/             Typed content/data — copy, links, education. Edit these
+                       to change static copy; components read from them rather
+                       than hardcoding.
   components/
     ui/                Design-system primitives (Button, Tag, SectionDivider, Eyebrow)
     layout/            Page chrome (Nav, MobileMenu, ThemeToggle, Footer)
     sections/          Landing-page sections (Hero, Skills, Experience, Education)
-    admin/             Admin UI (LoginForm, Dashboard, ProfileEditor, SkillsManager)
-  hooks/               Data hooks for the public page (useProfile, useSkills)
-  lib/                 API clients — config, authApi, profileApi, skillApi, apiErrors
-docs/                  Integration notes (e.g. skill-api-handover.md)
+    admin/             Admin UI (LoginForm, Dashboard, ProfileEditor,
+                       SkillsManager, ExperiencesManager)
+  hooks/               Data hooks for the public page (useProfile, useSkills,
+                       useExperiences)
+  lib/                 API clients — config, authApi, profileApi, skillApi,
+                       experienceApi, apiErrors
+docs/                  Integration notes (skill-api-handover.md,
+                       experience-api-handover.md)
 ```
 
 Design tokens (colors, spacing, radii, shadows, fonts) live as CSS custom
@@ -46,24 +50,27 @@ to `localStorage`, and every token re-resolves under that attribute.
 
 ## Backend API
 
-The Hero and Skills sections are driven entirely by the .NET API. When the API
-returns nothing or can't be reached, each section shows a short "not available"
-message instead of a fallback list, so the page never renders stale content.
-Experience and Education are still static (`src/content/`) until the API covers
-them.
+The Hero, Skills, and Experience sections are driven entirely by the .NET API.
+When the API returns nothing or can't be reached, each section shows a short
+"not available" message instead of a fallback list, so the page never renders
+stale content. Education is still static (`src/content/`) until the API covers
+it.
 
 - **Base URL** — `NEXT_PUBLIC_API_BASE_URL`, defaulting to the deployed Azure
   host (`src/lib/config.ts`). Set it in `.env.local` to point at a local API.
-- **Reads** (`getProfile`, `getSkills`) are anonymous and retried through the
-  serverless DB's cold start, then cached for the page's lifetime.
+- **Reads** (`getProfile`, `getSkills`, `getExperiences`) are anonymous and
+  retried through the serverless DB's cold start, then cached for the page's
+  lifetime.
 - **Admin auth** — `POST /api/Auth/login` returns an access token held only in
   memory; the refresh token is an `httpOnly` cookie. On load the admin screen
   calls `/api/Auth/refresh` to resume a session. Write calls that 401 refresh
   once and retry — the API regenerates its signing key on every restart, so a
   post-deploy 401 is routine.
 
-See [`docs/skill-api-handover.md`](docs/skill-api-handover.md) for the full
-Skill endpoint contract.
+See [`docs/skill-api-handover.md`](docs/skill-api-handover.md) and
+[`docs/experience-api-handover.md`](docs/experience-api-handover.md) for the
+full endpoint contracts. Experience currently exposes GET (landing) and POST
+(admin create) only — no edit or delete yet.
 
 ## Getting started
 
@@ -97,7 +104,7 @@ via GitHub Pages. The custom domain is configured through `public/CNAME`
 
 ## Editing content
 
-Static copy — work experience, education, and social links — is data, not
-markup. Edit the relevant file under `src/content/`. Live profile and skills
+Static copy — education and social links — is data, not markup. Edit the
+relevant file under `src/content/`. Live profile, skills, and experience
 content is edited through `/admin`, which writes to the backend API; the
-Hero and Skills sections render only what the API returns.
+Hero, Skills, and Experience sections render only what the API returns.

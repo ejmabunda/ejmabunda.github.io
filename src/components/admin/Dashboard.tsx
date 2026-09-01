@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import ProfileEditor from "./ProfileEditor";
 import SkillsManager from "./SkillsManager";
+import ExperiencesManager from "./ExperiencesManager";
 
 interface DashboardProps {
   token: string;
@@ -11,7 +12,7 @@ interface DashboardProps {
   onLoggedOut: () => void;
 }
 
-type Tab = "profile" | "skills";
+type Tab = "profile" | "skills" | "experience";
 
 export default function Dashboard({
   token,
@@ -57,17 +58,35 @@ export default function Dashboard({
         >
           Skills
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "experience"}
+          className="admin-tab"
+          data-active={tab === "experience"}
+          onClick={() => setTab("experience")}
+        >
+          Experience
+        </button>
       </div>
 
-      {tab === "profile" ? (
+      {tab === "profile" && (
         <ProfileEditor
           embedded
           token={token}
           onTokenRefreshed={onTokenRefreshed}
           onLoggedOut={onLoggedOut}
         />
-      ) : (
+      )}
+      {tab === "skills" && (
         <SkillsManager
+          token={token}
+          onTokenRefreshed={onTokenRefreshed}
+          onLoggedOut={onLoggedOut}
+        />
+      )}
+      {tab === "experience" && (
+        <ExperiencesManager
           token={token}
           onTokenRefreshed={onTokenRefreshed}
           onLoggedOut={onLoggedOut}

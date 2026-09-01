@@ -16,14 +16,6 @@ export interface HeroCta {
   kind?: "link" | "preview";
 }
 
-export interface ExperienceEntry {
-  role: string;
-  org: string;
-  dateRange: string;
-  tone: "accent" | "accent-2";
-  bullets: string[];
-}
-
 export interface EducationEntry {
   label: string;
   meta: string;
