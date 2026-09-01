@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "./config";
 import { UnauthorizedError } from "./apiErrors";
+import type { TagTone } from "@/content/types";
 
 export { UnauthorizedError };
 
@@ -36,6 +37,19 @@ export const CATEGORY_LABEL: Record<SkillCategoryName, string> = {
 export function isKnownCategory(value: string): value is SkillCategoryName {
   return value in SKILL_CATEGORY;
 }
+
+/**
+ * Tag colour per category. Shared by the Core Skills section and the
+ * per-experience skill chips so a given category always reads the same colour.
+ * Kept stable so the palette doesn't shift as skills are recategorised.
+ */
+export const CATEGORY_TONE: Record<SkillCategoryName, TagTone> = {
+  LanguagesAndBackend: "accent",
+  SystemsAndData: "accent-2",
+  Platform: "neutral",
+  TestingAndReliability: "outline",
+  CloudAndDevOps: "outline",
+};
 
 export interface Skill {
   id: string;

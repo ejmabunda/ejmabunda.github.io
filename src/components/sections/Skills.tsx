@@ -4,24 +4,13 @@ import Tag from "@/components/ui/Tag";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Skeleton from "@/components/ui/Skeleton";
 import type { TagTone } from "@/content/types";
-import { skills as fallbackSkills } from "@/content/skills";
 import { useSkills } from "@/hooks/useSkills";
 import {
   CATEGORY_LABEL,
+  CATEGORY_TONE,
   SKILL_CATEGORY_NAMES,
   type Skill,
-  type SkillCategoryName,
 } from "@/lib/skillApi";
-
-// Tag colour per category — matches the tones the section used when the list
-// was static content, so the live version looks identical once populated.
-const CATEGORY_TONE: Record<SkillCategoryName, TagTone> = {
-  LanguagesAndBackend: "accent",
-  SystemsAndData: "accent-2",
-  Platform: "neutral",
-  TestingAndReliability: "outline",
-  CloudAndDevOps: "outline",
-};
 
 interface RenderGroup {
   label: string;
@@ -47,16 +36,16 @@ const SKELETON_ROWS = [3, 4, 4, 5, 5];
 export default function Skills() {
   const state = useSkills();
 
-  // On empty or error, fall back to the bundled list rather than dropping the
-  // section — skills change rarely and a blank section reads as broken.
-  const groups: RenderGroup[] =
-    state.status === "success" ? groupLiveSkills(state.data) : fallbackSkills;
+  // Purely data-driven: the section shows whatever the Skill API returns, and a
+  // short message when it returns nothing or can't be reached — no bundled list.
+  const groups = state.status === "success" ? groupLiveSkills(state.data) : [];
+  const hasContent = groups.length > 0;
 
   return (
     <section id="skills" className="wrap pt-10 pb-10">
       <Eyebrow>Core skills</Eyebrow>
 
-      {state.status === "loading" ? (
+      {state.status === "loading" && (
         <div
           className="flex flex-col gap-[14px]"
           aria-busy="true"
@@ -78,7 +67,23 @@ export default function Skills() {
             </div>
           ))}
         </div>
-      ) : (
+      )}
+
+      {state.status === "error" && (
+        <p role="alert" className="max-w-[600px] text-[17px] opacity-85">
+          Couldn&apos;t load skills content. Please refresh the page to try
+          again.
+        </p>
+      )}
+
+      {(state.status === "empty" ||
+        (state.status === "success" && !hasContent)) && (
+        <p className="max-w-[600px] text-[17px] opacity-85">
+          Skills content isn&apos;t available right now.
+        </p>
+      )}
+
+      {state.status === "success" && hasContent && (
         <div className="flex flex-col gap-[14px]">
           {groups.map((group) => (
             <div key={group.label} className="skill-row">

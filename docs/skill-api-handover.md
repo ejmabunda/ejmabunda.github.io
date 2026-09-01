@@ -320,8 +320,9 @@ Validate before submit:
 ### Frontend picks up
 
 - [x] **Landing:** skills section reads `GET /api/Skill`, groups by category, handles empty array.
-      `src/components/sections/Skills.tsx` + `src/hooks/useSkills.ts`. Falls back to the
-      bundled `src/content/skills.ts` on empty/error so the section is never blank.
+      `src/components/sections/Skills.tsx` + `src/hooks/useSkills.ts`. Purely data-driven —
+      shows an "isn't available right now" message on an empty list or a fetch error rather
+      than a bundled fallback.
 - [x] **Admin:** skill table with create / edit / delete against the three write endpoints.
       `src/components/admin/SkillsManager.tsx`, reached via the Profile/Skills tabs in
       `src/components/admin/Dashboard.tsx`.
