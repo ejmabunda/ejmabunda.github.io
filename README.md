@@ -24,9 +24,9 @@ src/
   app/
     page.tsx           Public landing page (Hero, Skills, Experience, Education)
     admin/             Client-only admin screen (noindex) — login + dashboard
-  content/             Typed content/data — copy, links, experience, education,
-                       and a fallback skills list. Edit these to change static
-                       copy; components read from them rather than hardcoding.
+  content/             Typed content/data — copy, links, experience, education.
+                       Edit these to change static copy; components read from
+                       them rather than hardcoding.
   components/
     ui/                Design-system primitives (Button, Tag, SectionDivider, Eyebrow)
     layout/            Page chrome (Nav, MobileMenu, ThemeToggle, Footer)
@@ -46,9 +46,11 @@ to `localStorage`, and every token re-resolves under that attribute.
 
 ## Backend API
 
-The site reads live profile and skills data from the .NET API, falling back to
-the static content in `src/content/` when the API is empty or unreachable so
-the page is never blank.
+The Hero and Skills sections are driven entirely by the .NET API. When the API
+returns nothing or can't be reached, each section shows a short "not available"
+message instead of a fallback list, so the page never renders stale content.
+Experience and Education are still static (`src/content/`) until the API covers
+them.
 
 - **Base URL** — `NEXT_PUBLIC_API_BASE_URL`, defaulting to the deployed Azure
   host (`src/lib/config.ts`). Set it in `.env.local` to point at a local API.
@@ -95,7 +97,7 @@ via GitHub Pages. The custom domain is configured through `public/CNAME`
 
 ## Editing content
 
-Static copy — the bio, work experience, education, social links, and the
-fallback skill tags — is data, not markup. Edit the relevant file under
-`src/content/`. Live profile and skills content is edited through `/admin`,
-which writes to the backend API.
+Static copy — work experience, education, and social links — is data, not
+markup. Edit the relevant file under `src/content/`. Live profile and skills
+content is edited through `/admin`, which writes to the backend API; the
+Hero and Skills sections render only what the API returns.

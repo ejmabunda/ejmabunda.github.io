@@ -1,7 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Skills from "./Skills";
-import { skills as fallbackSkills } from "@/content/skills";
 import { useSkills, type SkillsState } from "@/hooks/useSkills";
 import type { Skill } from "@/lib/skillApi";
 
@@ -67,19 +66,23 @@ describe("Skills", () => {
     expect(screen.queryByText("Testing & Reliability")).not.toBeInTheDocument();
   });
 
-  it("falls back to the bundled list when the API returns nothing", () => {
+  it("shows an unavailable message when the API returns nothing", () => {
     setState({ status: "empty" });
     render(<Skills />);
 
-    fallbackSkills.forEach((group) => {
-      expect(screen.getByText(group.label)).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText("Skills content isn't available right now.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("C#")).not.toBeInTheDocument();
   });
 
-  it("falls back to the bundled list on error rather than dropping the section", () => {
+  it("shows an error message when the list can't be loaded", () => {
     setState({ status: "error" });
     render(<Skills />);
 
-    expect(screen.getByText(fallbackSkills[0].items[0])).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Couldn't load skills content. Please refresh the page to try again."
+    );
+    expect(screen.queryByText("C#")).not.toBeInTheDocument();
   });
 });
