@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import LoginForm from "@/components/admin/LoginForm";
-import ProfileEditor from "@/components/admin/ProfileEditor";
+import Dashboard from "@/components/admin/Dashboard";
 import { logout, refreshAccessToken } from "@/lib/authApi";
 
 export default function AdminPage() {
@@ -40,7 +40,7 @@ export default function AdminPage() {
   return (
     <div className="admin-page">
       {checking ? null : token ? (
-        <ProfileEditor
+        <Dashboard
           token={token}
           onTokenRefreshed={setToken}
           onLoggedOut={handleLoggedOut}
