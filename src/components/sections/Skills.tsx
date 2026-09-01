@@ -7,20 +7,10 @@ import type { TagTone } from "@/content/types";
 import { useSkills } from "@/hooks/useSkills";
 import {
   CATEGORY_LABEL,
+  CATEGORY_TONE,
   SKILL_CATEGORY_NAMES,
   type Skill,
-  type SkillCategoryName,
 } from "@/lib/skillApi";
-
-// Tag colour per category — kept stable so the section's palette doesn't shift
-// as skills are added or recategorised through the admin screen.
-const CATEGORY_TONE: Record<SkillCategoryName, TagTone> = {
-  LanguagesAndBackend: "accent",
-  SystemsAndData: "accent-2",
-  Platform: "neutral",
-  TestingAndReliability: "outline",
-  CloudAndDevOps: "outline",
-};
 
 interface RenderGroup {
   label: string;
