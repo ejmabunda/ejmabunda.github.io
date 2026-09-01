@@ -16,12 +16,6 @@ export interface HeroCta {
   kind?: "link" | "preview";
 }
 
-export interface SkillGroup {
-  label: string;
-  tone: TagTone;
-  items: string[];
-}
-
 export interface ExperienceEntry {
   role: string;
   org: string;
