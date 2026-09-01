@@ -1,4 +1,7 @@
 import { API_BASE_URL } from "./config";
+import { UnauthorizedError } from "./apiErrors";
+
+export { UnauthorizedError };
 
 export interface ProfileApiData {
   id: number;
@@ -11,13 +14,6 @@ export interface ProfileInput {
   title: string;
   headline: string;
   subtitle: string;
-}
-
-export class UnauthorizedError extends Error {
-  constructor() {
-    super("Unauthorized");
-    this.name = "UnauthorizedError";
-  }
 }
 
 const PROFILE_ENDPOINT = () => `${API_BASE_URL}/api/Profile`;

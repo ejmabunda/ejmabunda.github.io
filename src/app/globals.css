@@ -947,6 +947,126 @@
     }
   }
 
+  /* Admin — section tabs (Profile / Skills) */
+  .admin-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .admin-tab {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
+      monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+  }
+  .admin-tab:hover {
+    color: var(--admin-text);
+  }
+  .admin-tab[data-active="true"] {
+    background: var(--admin-surface);
+    border-color: var(--admin-border);
+    color: var(--admin-text);
+  }
+
+  /* Admin — <select> styled to match .admin-input-plain. Native dropdown
+     arrow is replaced with an inline SVG so its inset from the edge is ours
+     to control (the native arrow ignores padding in most browsers). */
+  .admin-select {
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    background: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 11px 38px 11px 12px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  /* Admin — skills list */
+  .admin-skill-add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .admin-skill-add .admin-input-plain {
+    flex: 1 1 140px;
+    margin-bottom: 0;
+  }
+  .admin-skill-add .admin-select {
+    flex: 1 1 160px;
+    width: auto;
+  }
+  .admin-skill-add-btn {
+    width: auto;
+    margin-top: 0;
+    flex: none;
+  }
+
+  .admin-skill-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .admin-skill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--admin-border);
+  }
+  .admin-skill-row:last-child {
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .admin-skill-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .admin-skill-cat {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
+      monospace;
+    font-size: 11px;
+    color: var(--admin-text-faint);
+    margin-right: auto;
+  }
+  .admin-skill-actions {
+    display: flex;
+    gap: 6px;
+    flex: none;
+  }
+  .admin-skill-row.is-editing {
+    padding: 12px 0;
+  }
+  .admin-skill-edit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .admin-skill-edit .admin-input-plain {
+    flex: 1 1 140px;
+    margin-bottom: 0;
+  }
+  .admin-skill-edit .admin-select {
+    flex: 1 1 160px;
+    width: auto;
+  }
+
   .admin-overlay {
     position: fixed;
     inset: 0;
