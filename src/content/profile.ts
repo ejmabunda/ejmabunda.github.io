@@ -1,5 +1,4 @@
 import type { HeroCta } from "./types";
-import { site } from "./site";
 
 export const profile = {
     name: "Matimu Mabunda",
@@ -15,12 +14,6 @@ export const profile = {
             href: "https://www.linkedin.com/in/ejmabunda",
             variant: "primary",
             external: true,
-        },
-        {
-            label: "Résumé",
-            href: site.resumeHref,
-            variant: "secondary",
-            kind: "preview",
         },
         {
             label: "GitHub ↗",
