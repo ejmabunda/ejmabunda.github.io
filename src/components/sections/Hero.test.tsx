@@ -11,7 +11,7 @@ vi.mock("@/hooks/useProfile", () => ({
 const mockUseProfile = vi.mocked(useProfile);
 
 // globals:false means RTL's automatic per-test cleanup isn't wired up here,
-// and every test in this file renders the same section (see ResumePreview.test.tsx).
+// and every test in this file renders the same section.
 afterEach(cleanup);
 
 function setProfileState(state: ProfileState) {
@@ -19,20 +19,16 @@ function setProfileState(state: ProfileState) {
 }
 
 describe("Hero", () => {
-  it("always renders the photo and every CTA button, regardless of profile state", () => {
+  it("always renders the photo and every CTA link, regardless of profile state", () => {
     setProfileState({ status: "loading" });
     render(<Hero />);
 
     expect(screen.getByAltText(profile.photo.alt)).toBeInTheDocument();
     profile.heroCtas.forEach((cta) => {
-      if (cta.kind === "preview") {
-        expect(screen.getByRole("button", { name: cta.label })).toBeInTheDocument();
-      } else {
-        expect(screen.getByRole("link", { name: cta.label })).toHaveAttribute(
-          "href",
-          cta.href
-        );
-      }
+      expect(screen.getByRole("link", { name: cta.label })).toHaveAttribute(
+        "href",
+        cta.href
+      );
     });
   });
 

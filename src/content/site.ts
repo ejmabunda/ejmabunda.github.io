@@ -11,5 +11,4 @@ export const site = {
     { label: "experience", href: "#exp" },
     { label: "skills", href: "#skills" },
   ] as NavLink[],
-  resumeHref: "/Resume.pdf",
 };
