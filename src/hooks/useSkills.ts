@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSkills, type Skill } from "@/lib/skillApi";
+import { trackApiRequest } from "@/lib/apiWake";
 
 export type SkillsState =
   | { status: "loading" }
@@ -14,6 +15,7 @@ export function useSkills(): SkillsState {
 
   useEffect(() => {
     let cancelled = false;
+    const settle = trackApiRequest();
 
     getSkills()
       .then((data) => {
@@ -27,10 +29,12 @@ export function useSkills(): SkillsState {
       .catch(() => {
         if (cancelled) return;
         setState({ status: "error" });
-      });
+      })
+      .finally(settle);
 
     return () => {
       cancelled = true;
+      settle();
     };
   }, []);
 

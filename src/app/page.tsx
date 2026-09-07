@@ -1,6 +1,7 @@
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import SectionDivider from "@/components/ui/SectionDivider";
+import ApiWakeNotice from "@/components/ui/ApiWakeNotice";
 import Hero from "@/components/sections/Hero";
 import Skills from "@/components/sections/Skills";
 import Experience from "@/components/sections/Experience";
@@ -18,6 +19,7 @@ export default function Home() {
       <SectionDivider />
       <Education />
       <Footer />
+      <ApiWakeNotice />
     </>
   );
 }
