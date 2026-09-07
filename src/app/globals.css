@@ -1080,7 +1080,9 @@
   .wake-notice-region {
     position: fixed;
     left: 50%;
-    bottom: var(--spacing-xl);
+    /* just clear of the sticky nav (~72px tall; taller at the mobile
+       breakpoint — see the override below) */
+    top: calc(72px + var(--spacing-md));
     transform: translateX(-50%);
     z-index: 90;
     width: min(420px, calc(100vw - 2 * var(--spacing-lg)));
@@ -1104,7 +1106,7 @@
   @keyframes wake-notice-in {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(-8px);
     }
     to {
       opacity: 1;
@@ -1186,6 +1188,10 @@
     }
     .skill-label {
       width: auto !important;
+    }
+    .wake-notice-region {
+      /* the mobile nav is taller (40px toggle + 20px top/bottom padding) */
+      top: calc(84px + var(--spacing-sm));
     }
   }
 }
