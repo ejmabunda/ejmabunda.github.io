@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import {
   createSkill,
   deleteSkill,
@@ -20,6 +25,7 @@ interface SkillsManagerProps {
   token: string;
   onTokenRefreshed: (token: string) => void;
   onLoggedOut: () => void;
+  onCountChange?: (count: number) => void;
 }
 
 type LoadStatus = "loading" | "loaded" | "error";
@@ -39,6 +45,7 @@ export default function SkillsManager({
   token,
   onTokenRefreshed,
   onLoggedOut,
+  onCountChange,
 }: SkillsManagerProps) {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -58,12 +65,18 @@ export default function SkillsManager({
   const [deleteTarget, setDeleteTarget] = useState<Skill | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  function commit(next: Skill[]) {
+    const sorted = sortSkills(next);
+    setSkills(sorted);
+    onCountChange?.(sorted.length);
+  }
+
   useEffect(() => {
     let cancelled = false;
     getSkillsFresh()
       .then((data) => {
         if (cancelled) return;
-        setSkills(sortSkills(data));
+        commit(data);
         setLoadStatus("loaded");
       })
       .catch(() => {
@@ -73,14 +86,20 @@ export default function SkillsManager({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sorted = useMemo(() => sortSkills(skills), [skills]);
+  const groups = useMemo(
+    () =>
+      SKILL_CATEGORY_NAMES.map((name) => ({
+        name,
+        label: CATEGORY_LABEL[name],
+        items: sorted.filter((s) => s.skillCategory === name),
+      })).filter((g) => g.items.length > 0),
+    [sorted]
+  );
 
-  // Runs an authed call with the current token; on a 401 mint a fresh token
-  // from the refresh cookie and retry once. Matches ProfileEditor.runAuthed —
-  // the signing key is regenerated on every backend restart, so a post-deploy
-  // 401 → refresh → retry is the normal path, not an edge case.
   async function runAuthed<T>(call: (token: string) => Promise<T>): Promise<T> {
     try {
       return await call(token);
@@ -111,7 +130,7 @@ export default function SkillsManager({
       const created = await runAuthed((t) =>
         createSkill(t, { name, skillCategory: SKILL_CATEGORY[newCategory] })
       );
-      setSkills((prev) => sortSkills([...prev, created]));
+      commit([...skills, created]);
       setNewName("");
       setNewCategory(DEFAULT_CATEGORY);
     } catch (err) {
@@ -129,10 +148,6 @@ export default function SkillsManager({
     setBanner(null);
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-  };
-
   const handleSaveEdit = async (e: FormEvent) => {
     e.preventDefault();
     const name = editName.trim();
@@ -147,9 +162,7 @@ export default function SkillsManager({
           skillCategory: SKILL_CATEGORY[editCategory],
         })
       );
-      setSkills((prev) =>
-        sortSkills(prev.map((s) => (s.id === updated.id ? updated : s)))
-      );
+      commit(skills.map((s) => (s.id === updated.id ? updated : s)));
       setEditingId(null);
     } catch (err) {
       if (handleAuthError(err)) return;
@@ -165,7 +178,7 @@ export default function SkillsManager({
     setBanner(null);
     try {
       await runAuthed((t) => deleteSkill(t, deleteTarget.id));
-      setSkills((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      commit(skills.filter((s) => s.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch (err) {
       if (handleAuthError(err)) return;
@@ -175,143 +188,220 @@ export default function SkillsManager({
     }
   };
 
-  return (
-    <div className="admin-card">
-      <h1 className="admin-h1">Skills</h1>
-      <p className="admin-subtext">
-        The skill list shown on your site, grouped by category. Changes go live
-        immediately.
-      </p>
+  const categorySelect = (
+    value: SkillCategoryName,
+    onChange: (v: SkillCategoryName) => void,
+    label: string
+  ) => (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value as SkillCategoryName)}
+      className="admin-select"
+    >
+      {SKILL_CATEGORY_NAMES.map((name) => (
+        <option key={name} value={name}>
+          {CATEGORY_LABEL[name]}
+        </option>
+      ))}
+    </select>
+  );
 
-      {banner && <div className="admin-error-banner">{banner}</div>}
-
-      {loadStatus === "loading" && (
-        <p className="admin-subtext">Loading…</p>
-      )}
-
-      {loadStatus === "error" && (
-        <p className="admin-subtext">
-          Something went wrong fetching your skills. Refresh to try again.
-        </p>
-      )}
-
-      {loadStatus === "loaded" && (
-        <>
-          <form className="admin-skill-add" onSubmit={handleAdd}>
-            <input
-              type="text"
-              aria-label="New skill name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="e.g. GitHub"
-              className="admin-input-plain"
-            />
-            <select
-              aria-label="New skill category"
-              value={newCategory}
-              onChange={(e) =>
-                setNewCategory(e.target.value as SkillCategoryName)
-              }
-              className="admin-select"
-            >
-              {SKILL_CATEGORY_NAMES.map((name) => (
-                <option key={name} value={name}>
-                  {CATEGORY_LABEL[name]}
-                </option>
-              ))}
-            </select>
+  const renderRow = (skill: Skill) =>
+    editingId === skill.id ? (
+      <li
+        key={skill.id}
+        className="admin-skill-tr"
+        data-editing="true"
+      >
+        <form className="admin-skill-edit-fields" onSubmit={handleSaveEdit}>
+          <input
+            type="text"
+            aria-label={`Rename ${skill.name}`}
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            className="admin-input-plain"
+          />
+          {categorySelect(
+            editCategory,
+            setEditCategory,
+            `Category for ${skill.name}`
+          )}
+          <span className="s-actions">
             <button
               type="submit"
-              className="admin-btn-primary admin-skill-add-btn"
-              disabled={adding || newName.trim() === ""}
+              className="admin-btn-mini"
+              data-solid="true"
+              disabled={savingEdit || editName.trim() === ""}
             >
-              {adding && <span className="admin-spinner" aria-hidden="true" />}
-              {adding ? "Adding…" : "Add skill"}
+              {savingEdit ? "Saving…" : "Save"}
             </button>
-          </form>
+            <button
+              type="button"
+              className="admin-btn-mini"
+              onClick={() => setEditingId(null)}
+              disabled={savingEdit}
+            >
+              Cancel
+            </button>
+          </span>
+        </form>
+      </li>
+    ) : (
+      <li key={skill.id} className="admin-skill-tr">
+        <span className="s-name">{skill.name}</span>
+        <span className="s-cat">{CATEGORY_LABEL[skill.skillCategory]}</span>
+        <span className="s-actions">
+          <button
+            type="button"
+            className="admin-btn-mini"
+            onClick={() => beginEdit(skill)}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            className="admin-btn-mini"
+            data-tone="danger"
+            onClick={() => setDeleteTarget(skill)}
+          >
+            Delete
+          </button>
+        </span>
+      </li>
+    );
 
-          {sorted.length === 0 ? (
-            <p className="admin-subtext">
-              No skills yet. Add one above to publish the list.
-            </p>
-          ) : (
-            <ul className="admin-skill-list">
-              {sorted.map((skill) =>
-                editingId === skill.id ? (
-                  <li key={skill.id} className="admin-skill-row is-editing">
-                    <form
-                      className="admin-skill-edit"
-                      onSubmit={handleSaveEdit}
-                    >
-                      <input
-                        type="text"
-                        aria-label={`Rename ${skill.name}`}
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="admin-input-plain"
-                      />
-                      <select
-                        aria-label={`Category for ${skill.name}`}
-                        value={editCategory}
-                        onChange={(e) =>
-                          setEditCategory(e.target.value as SkillCategoryName)
-                        }
-                        className="admin-select"
-                      >
-                        {SKILL_CATEGORY_NAMES.map((name) => (
-                          <option key={name} value={name}>
-                            {CATEGORY_LABEL[name]}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="admin-skill-actions">
-                        <button
-                          type="submit"
-                          className="admin-btn-secondary"
-                          disabled={savingEdit || editName.trim() === ""}
-                        >
-                          {savingEdit ? "Saving…" : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-btn-secondary"
-                          onClick={cancelEdit}
-                          disabled={savingEdit}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  </li>
+  return (
+    <>
+      <div className="admin-actionbar">
+        <div className="admin-actionbar-title">
+          Skills
+          <span className="admin-pill">{sorted.length} live</span>
+        </div>
+        <span className="admin-actionbar-status">all changes saved</span>
+        <div className="admin-actionbar-actions">
+          <button
+            type="button"
+            className="admin-btn-action"
+            data-idle="true"
+            disabled
+          >
+            All changes saved
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-body">
+        {loadStatus === "loading" && <p className="admin-subtext">Loading…</p>}
+
+        {loadStatus === "error" && (
+          <p className="admin-subtext">
+            Something went wrong fetching your skills. Refresh to try again.
+          </p>
+        )}
+
+        {loadStatus === "loaded" && (
+          <div className="admin-content-grid">
+            <div className="admin-card admin-card-scrollable">
+              <div className="admin-card-head">
+                <div className="admin-card-lead">
+                  <h3 className="admin-h2">Skill list</h3>
+                  <p className="admin-subtext" style={{ margin: 0 }}>
+                    The skill list shown on your site, grouped by category.
+                    Changes go live immediately.
+                  </p>
+                </div>
+                {banner && (
+                  <div
+                    className="admin-error-banner"
+                    style={{ marginTop: 14, marginBottom: 0 }}
+                  >
+                    {banner}
+                  </div>
+                )}
+                <form className="admin-skill-add-row" onSubmit={handleAdd}>
+                  <input
+                    type="text"
+                    aria-label="New skill name"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g. GitHub"
+                    className="admin-input-plain"
+                    style={{ marginBottom: 0 }}
+                  />
+                  {categorySelect(
+                    newCategory,
+                    setNewCategory,
+                    "New skill category"
+                  )}
+                  <button
+                    type="submit"
+                    className="admin-btn-mini"
+                    data-tone="accent"
+                    disabled={adding || newName.trim() === ""}
+                    style={{ padding: "11px 16px", fontSize: 13 }}
+                  >
+                    {adding ? "Adding…" : "+ Add skill"}
+                  </button>
+                </form>
+              </div>
+
+              <div className="admin-table-head">
+                <span>SKILL</span>
+                <span className="col-cat">CATEGORY</span>
+                <span />
+              </div>
+
+              <div className="admin-skill-scroll">
+                {sorted.length === 0 ? (
+                  <p className="admin-subtext" style={{ padding: "16px 20px" }}>
+                    No skills yet. Add one above to publish the list.
+                  </p>
                 ) : (
-                  <li key={skill.id} className="admin-skill-row">
-                    <span className="admin-skill-name">{skill.name}</span>
-                    <span className="admin-skill-cat">
-                      {CATEGORY_LABEL[skill.skillCategory]}
-                    </span>
-                    <div className="admin-skill-actions">
-                      <button
-                        type="button"
-                        className="admin-btn-secondary"
-                        onClick={() => beginEdit(skill)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn-secondary"
-                        onClick={() => setDeleteTarget(skill)}
-                      >
-                        Delete
-                      </button>
+                  groups.map((group) => (
+                    <div key={group.name} className="admin-skill-group">
+                      <div className="admin-skill-group-head">
+                        {group.label.toUpperCase()} · {group.items.length} OF{" "}
+                        {sorted.length}
+                      </div>
+                      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                        {group.items.map(renderRow)}
+                      </ul>
                     </div>
-                  </li>
-                )
-              )}
-            </ul>
-          )}
-        </>
-      )}
+                  ))
+                )}
+              </div>
+            </div>
+
+            <aside className="admin-context">
+              <div className="admin-context-panel">
+                <span className="admin-context-label">BY CATEGORY</span>
+                {SKILL_CATEGORY_NAMES.map((name) => (
+                  <div key={name} className="admin-context-row">
+                    <span>{CATEGORY_LABEL[name]}</span>
+                    <b data-accent="true">
+                      {sorted.filter((s) => s.skillCategory === name).length}
+                    </b>
+                  </div>
+                ))}
+              </div>
+              <div className="admin-context-panel">
+                <span className="admin-context-label">PREVIEW</span>
+                <div className="admin-chip-row">
+                  {sorted.slice(0, 14).map((s) => (
+                    <span key={s.id} className="admin-chip">
+                      {s.name}
+                    </span>
+                  ))}
+                  {sorted.length > 14 && (
+                    <span className="admin-chip">+{sorted.length - 14}</span>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+      </div>
 
       {deleteTarget && (
         <DeleteConfirmModal
@@ -322,6 +412,6 @@ export default function SkillsManager({
           onConfirm={handleDelete}
         />
       )}
-    </div>
+    </>
   );
 }

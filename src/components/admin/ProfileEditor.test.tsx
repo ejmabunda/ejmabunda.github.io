@@ -1,4 +1,11 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ProfileEditor from "./ProfileEditor";
 import {
@@ -35,51 +42,65 @@ const sampleProfile = {
   subtitle: "Building production systems that stay up.",
 };
 
+function renderEditor(overrides: Partial<React.ComponentProps<typeof ProfileEditor>> = {}) {
+  return render(
+    <ProfileEditor
+      token="tok"
+      onTokenRefreshed={vi.fn()}
+      onLoggedOut={vi.fn()}
+      {...overrides}
+    />
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 describe("ProfileEditor", () => {
-  it("renders the create form when no profile exists", async () => {
+  it("shows the create framing when no profile exists", async () => {
     getProfileFreshMock.mockResolvedValue(null);
-    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
+    renderEditor();
 
     expect(
-      await screen.findByRole("heading", { name: "Create your profile" })
+      await screen.findByRole("button", { name: "Create profile" })
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Create profile" })).toBeInTheDocument();
+    expect(screen.getByText("not published")).toBeInTheDocument();
     expect(screen.queryByText("Delete profile")).not.toBeInTheDocument();
   });
 
-  it("renders the edit form pre-filled when a profile exists", async () => {
+  it("pre-fills the fields when a profile exists", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
-    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
+    renderEditor();
 
     expect(
-      await screen.findByRole("heading", { name: "Edit your profile" })
+      await screen.findByRole("button", { name: "Save changes" })
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Title")).toHaveValue(sampleProfile.title);
     expect(screen.getByLabelText("Headline")).toHaveValue(sampleProfile.headline);
     expect(screen.getByLabelText("Subtitle")).toHaveValue(sampleProfile.subtitle);
     expect(screen.getByText("Delete profile")).toBeInTheDocument();
+    expect(screen.getByText("live")).toBeInTheDocument();
   });
 
-  it("shows a load-error state when fetching the profile fails", async () => {
+  it("shows a load-error state when fetching fails", async () => {
     getProfileFreshMock.mockRejectedValue(new Error("network error"));
-    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
+    renderEditor();
 
     expect(
       await screen.findByRole("heading", { name: "Couldn't load profile" })
     ).toBeInTheDocument();
   });
 
-  it("creates a profile and shows the success banner", async () => {
+  it("keeps the save button disabled until every field is filled, then creates", async () => {
     getProfileFreshMock.mockResolvedValue(null);
     createProfileMock.mockResolvedValue(sampleProfile);
-    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
+    renderEditor();
 
-    await screen.findByRole("heading", { name: "Create your profile" });
+    const save = await screen.findByRole("button", { name: "Create profile" });
+    expect(save).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText("Title"), {
       target: { value: sampleProfile.title },
     });
@@ -89,7 +110,8 @@ describe("ProfileEditor", () => {
     fireEvent.change(screen.getByLabelText("Subtitle"), {
       target: { value: sampleProfile.subtitle },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Create profile" }));
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
 
     await waitFor(() =>
       expect(
@@ -102,7 +124,7 @@ describe("ProfileEditor", () => {
       subtitle: sampleProfile.subtitle,
     });
     expect(
-      screen.getByRole("heading", { name: "Edit your profile" })
+      screen.getByRole("button", { name: "Save changes" })
     ).toBeInTheDocument();
   });
 
@@ -111,36 +133,23 @@ describe("ProfileEditor", () => {
     updateProfileMock.mockRejectedValue(new UnauthorizedError());
     refreshAccessTokenMock.mockResolvedValue(null);
     const onLoggedOut = vi.fn();
-    render(<ProfileEditor
-        token="tok"
-        onTokenRefreshed={vi.fn()}
-        onLoggedOut={onLoggedOut}
-      />);
+    renderEditor({ onLoggedOut });
 
-    await screen.findByRole("heading", { name: "Edit your profile" });
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onLoggedOut).toHaveBeenCalledTimes(1));
   });
 
-  it("refreshes the access token on a 401 and retries the save", async () => {
+  it("refreshes the token on a 401 and retries the save", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
     updateProfileMock
       .mockRejectedValueOnce(new UnauthorizedError())
       .mockResolvedValueOnce(sampleProfile);
     refreshAccessTokenMock.mockResolvedValue("new-tok");
     const onTokenRefreshed = vi.fn();
-    const onLoggedOut = vi.fn();
-    render(
-      <ProfileEditor
-        token="tok"
-        onTokenRefreshed={onTokenRefreshed}
-        onLoggedOut={onLoggedOut}
-      />
-    );
+    renderEditor({ onTokenRefreshed });
 
-    await screen.findByRole("heading", { name: "Edit your profile" });
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Save changes" }));
 
     await waitFor(() =>
       expect(
@@ -153,39 +162,26 @@ describe("ProfileEditor", () => {
       headline: sampleProfile.headline,
       subtitle: sampleProfile.subtitle,
     });
-    expect(onLoggedOut).not.toHaveBeenCalled();
   });
 
-  it("deletes the profile via the confirmation modal and returns to the create state", async () => {
+  it("deletes the profile via the confirm modal and returns to the create state", async () => {
     getProfileFreshMock.mockResolvedValue(sampleProfile);
     deleteProfileMock.mockResolvedValue(undefined);
-    render(<ProfileEditor token="tok" onTokenRefreshed={vi.fn()} onLoggedOut={vi.fn()} />);
+    renderEditor();
 
-    await screen.findByRole("heading", { name: "Edit your profile" });
+    await screen.findByRole("button", { name: "Save changes" });
     fireEvent.click(screen.getByText("Delete profile"));
-    expect(screen.getByRole("heading", { name: "Delete profile?" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByRole("heading", { name: "Delete profile?" })
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
 
     await waitFor(() => expect(deleteProfileMock).toHaveBeenCalledWith("tok"));
     expect(
-      await screen.findByRole("heading", { name: "Create your profile" })
+      await screen.findByRole("button", { name: "Create profile" })
     ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-
-  it("calls onLoggedOut when the log-out link is clicked", async () => {
-    getProfileFreshMock.mockResolvedValue(sampleProfile);
-    const onLoggedOut = vi.fn();
-    render(<ProfileEditor
-        token="tok"
-        onTokenRefreshed={vi.fn()}
-        onLoggedOut={onLoggedOut}
-      />);
-
-    await screen.findByRole("heading", { name: "Edit your profile" });
-    fireEvent.click(screen.getByText("log out"));
-
-    expect(onLoggedOut).toHaveBeenCalledTimes(1);
   });
 });

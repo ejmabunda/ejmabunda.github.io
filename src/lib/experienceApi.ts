@@ -30,6 +30,21 @@ export interface ExperienceCreateInput {
   skillIds: string[];
 }
 
+/**
+ * All fields optional — the API leaves omitted ones untouched. `skillIds`:
+ * omit to keep the current links, `[]` to clear them, or a list to mirror it
+ * exactly. The editor sends the whole form on every save, so this is really a
+ * full replacement in practice.
+ */
+export interface ExperienceUpdateInput {
+  jobTitle?: string;
+  employer?: string;
+  startDate?: string;
+  endDate?: string | null;
+  description?: string;
+  skillIds?: string[];
+}
+
 const EXPERIENCE_ENDPOINT = () => `${API_BASE_URL}/api/Experience`;
 
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -118,6 +133,35 @@ export async function createExperience(
   // the caller only needs "the create failed".
   if (!res.ok) throw new Error(`Create experience failed with ${res.status}`);
   return (await res.json()) as Experience;
+}
+
+export async function updateExperience(
+  token: string,
+  id: string,
+  input: ExperienceUpdateInput
+): Promise<Experience> {
+  // The id goes in the route here (unlike the Skill API, which takes it in the
+  // body).
+  const res = await fetch(`${EXPERIENCE_ENDPOINT()}/${id}`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Update experience failed with ${res.status}`);
+  return (await res.json()) as Experience;
+}
+
+export async function deleteExperience(token: string, id: string): Promise<void> {
+  const res = await fetch(`${EXPERIENCE_ENDPOINT()}/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  // A 404 means that id is already gone — the caller's goal state, not a failure.
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Delete experience failed with ${res.status}`);
+  }
 }
 
 export function __resetExperienceCacheForTests() {
