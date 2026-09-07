@@ -4,12 +4,15 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ExperiencesManager from "./ExperiencesManager";
 import {
   createExperience,
+  deleteExperience,
   getExperiencesFresh,
+  updateExperience,
   UnauthorizedError,
 } from "@/lib/experienceApi";
 import { getSkillsFresh } from "@/lib/skillApi";
@@ -22,6 +25,8 @@ vi.mock("@/lib/experienceApi", async (importOriginal) => {
     ...actual,
     getExperiencesFresh: vi.fn(),
     createExperience: vi.fn(),
+    updateExperience: vi.fn(),
+    deleteExperience: vi.fn(),
   };
 });
 
@@ -34,23 +39,34 @@ vi.mock("@/lib/authApi", () => ({ refreshAccessToken: vi.fn() }));
 
 const getExperiencesFreshMock = vi.mocked(getExperiencesFresh);
 const createExperienceMock = vi.mocked(createExperience);
+const updateExperienceMock = vi.mocked(updateExperience);
+const deleteExperienceMock = vi.mocked(deleteExperience);
 const getSkillsFreshMock = vi.mocked(getSkillsFresh);
 const refreshAccessTokenMock = vi.mocked(refreshAccessToken);
 
-const sampleSkills = [
+const skills = [
   { id: "s1", name: "C#", skillCategory: "LanguagesAndBackend" as const },
   { id: "s2", name: "Git", skillCategory: "CloudAndDevOps" as const },
 ];
 
-const sampleExperiences = [
+const roles = [
   {
     id: "e1",
-    jobTitle: "Software Developer",
-    employer: "Xiquel",
+    jobTitle: "Junior Developer",
+    employer: "Xiquel Group",
     startDate: "2026-02-02T00:00:00",
-    endDate: null,
-    description: "Backend work",
-    skills: [sampleSkills[0]],
+    endDate: "2027-01-31T00:00:00",
+    description: "Backend work\nAutomated tests",
+    skills: [skills[0]],
+  },
+  {
+    id: "e2",
+    jobTitle: "IT Support Assistant",
+    employer: "Northlink College",
+    startDate: "2023-08-01T00:00:00",
+    endDate: "2024-05-01T00:00:00",
+    description: "First-line support",
+    skills: [],
   },
 ];
 
@@ -67,24 +83,42 @@ function renderManager(
   );
 }
 
+function fillNewRole() {
+  fireEvent.change(screen.getByLabelText("Job title"), {
+    target: { value: "Software Developer" },
+  });
+  fireEvent.change(screen.getByLabelText("Employer"), {
+    target: { value: "Xiquel" },
+  });
+  fireEvent.change(screen.getByLabelText("Start date"), {
+    target: { value: "2026-02-02" },
+  });
+  fireEvent.change(screen.getByLabelText(/Description/), {
+    target: { value: "  Did things \n\n Shipped stuff " },
+  });
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 describe("ExperiencesManager", () => {
-  it("lists existing experiences once loaded", async () => {
-    getExperiencesFreshMock.mockResolvedValue(sampleExperiences);
-    getSkillsFreshMock.mockResolvedValue(sampleSkills);
-    renderManager();
+  it("loads the timeline and reports the role count", async () => {
+    getExperiencesFreshMock.mockResolvedValue(roles);
+    getSkillsFreshMock.mockResolvedValue(skills);
+    const onCountChange = vi.fn();
+    renderManager({ onCountChange });
 
-    expect(await screen.findByText("Software Developer")).toBeInTheDocument();
-    expect(screen.getByText(/Xiquel · 2026-02 – Present/)).toBeInTheDocument();
+    expect(await screen.findByText("Junior Developer")).toBeInTheDocument();
+    expect(screen.getByText("IT Support Assistant")).toBeInTheDocument();
+    expect(onCountChange).toHaveBeenLastCalledWith(2);
+    expect(screen.getByText("TIMELINE · 2")).toBeInTheDocument();
   });
 
   it("shows an error state when loading fails", async () => {
     getExperiencesFreshMock.mockRejectedValue(new Error("network"));
-    getSkillsFreshMock.mockResolvedValue(sampleSkills);
+    getSkillsFreshMock.mockResolvedValue(skills);
     renderManager();
 
     expect(
@@ -92,29 +126,18 @@ describe("ExperiencesManager", () => {
     ).toBeInTheDocument();
   });
 
-  it("creates an experience, joining description lines and sending selected skill ids", async () => {
+  it("creates a role, joining bullets and sending the picked skill ids", async () => {
     getExperiencesFreshMock.mockResolvedValue([]);
-    getSkillsFreshMock.mockResolvedValue(sampleSkills);
-    createExperienceMock.mockResolvedValue(sampleExperiences[0]);
+    getSkillsFreshMock.mockResolvedValue(skills);
+    createExperienceMock.mockResolvedValue(roles[0]);
     renderManager();
 
-    await screen.findByText("No experience entries yet.");
-
-    fireEvent.change(screen.getByLabelText("Job title"), {
-      target: { value: "Software Developer" },
-    });
-    fireEvent.change(screen.getByLabelText("Employer"), {
-      target: { value: "Xiquel" },
-    });
-    fireEvent.change(screen.getByLabelText("Start date"), {
-      target: { value: "2026-02-02" },
-    });
-    fireEvent.change(screen.getByLabelText(/Description/), {
-      target: { value: "  Backend work \n\n Built a scheduler " },
-    });
-    fireEvent.click(screen.getByLabelText("C#"));
-
-    fireEvent.click(screen.getByRole("button", { name: "Add experience" }));
+    await screen.findByText("Add a role");
+    fillNewRole();
+    fireEvent.click(screen.getByRole("button", { name: "C#" }));
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Add experience" })[0]
+    );
 
     await waitFor(() =>
       expect(createExperienceMock).toHaveBeenCalledWith("tok", {
@@ -122,69 +145,85 @@ describe("ExperiencesManager", () => {
         employer: "Xiquel",
         startDate: "2026-02-02",
         endDate: null,
-        description: "Backend work\nBuilt a scheduler",
+        description: "Did things\nShipped stuff",
         skillIds: ["s1"],
       })
     );
   });
 
-  it("keeps the submit button disabled until the required fields are filled", async () => {
-    getExperiencesFreshMock.mockResolvedValue([]);
-    getSkillsFreshMock.mockResolvedValue(sampleSkills);
+  it("loads a role into the editor and saves an update", async () => {
+    getExperiencesFreshMock.mockResolvedValue(roles);
+    getSkillsFreshMock.mockResolvedValue(skills);
+    updateExperienceMock.mockResolvedValue({
+      ...roles[0],
+      jobTitle: "Mid Developer",
+    });
     renderManager();
 
-    await screen.findByText("No experience entries yet.");
-    const submit = screen.getByRole("button", { name: "Add experience" });
-    expect(submit).toBeDisabled();
+    await screen.findByText("Junior Developer");
+    fireEvent.click(
+      screen.getByText("Junior Developer").closest("button")!
+    );
+
+    expect(screen.getByText("Edit role")).toBeInTheDocument();
+    expect(screen.getByLabelText("Job title")).toHaveValue("Junior Developer");
 
     fireEvent.change(screen.getByLabelText("Job title"), {
-      target: { value: "Dev" },
+      target: { value: "Mid Developer" },
     });
-    fireEvent.change(screen.getByLabelText("Employer"), {
-      target: { value: "Xiquel" },
-    });
-    fireEvent.change(screen.getByLabelText("Start date"), {
-      target: { value: "2026-02-02" },
-    });
-    fireEvent.change(screen.getByLabelText(/Description/), {
-      target: { value: "Did things" },
-    });
-    expect(submit).toBeEnabled();
+    fireEvent.click(screen.getAllByRole("button", { name: "Save role" })[0]);
+
+    await waitFor(() =>
+      expect(updateExperienceMock).toHaveBeenCalledWith(
+        "tok",
+        "e1",
+        expect.objectContaining({ jobTitle: "Mid Developer", skillIds: ["s1"] })
+      )
+    );
+  });
+
+  it("deletes the selected role through the confirm modal", async () => {
+    getExperiencesFreshMock.mockResolvedValue(roles);
+    getSkillsFreshMock.mockResolvedValue(skills);
+    deleteExperienceMock.mockResolvedValue(undefined);
+    renderManager();
+
+    await screen.findByText("Junior Developer");
+    fireEvent.click(screen.getByText("Junior Developer").closest("button")!);
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    const dialog = screen.getByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+    await waitFor(() =>
+      expect(deleteExperienceMock).toHaveBeenCalledWith("tok", "e1")
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("Junior Developer")).not.toBeInTheDocument()
+    );
   });
 
   it("refreshes the token on a 401 and retries the create", async () => {
     getExperiencesFreshMock.mockResolvedValue([]);
-    getSkillsFreshMock.mockResolvedValue(sampleSkills);
+    getSkillsFreshMock.mockResolvedValue(skills);
     createExperienceMock
       .mockRejectedValueOnce(new UnauthorizedError())
-      .mockResolvedValueOnce(sampleExperiences[0]);
+      .mockResolvedValueOnce(roles[0]);
     refreshAccessTokenMock.mockResolvedValue("new-tok");
     const onTokenRefreshed = vi.fn();
     renderManager({ onTokenRefreshed });
 
-    await screen.findByText("No experience entries yet.");
-    fireEvent.change(screen.getByLabelText("Job title"), {
-      target: { value: "Dev" },
-    });
-    fireEvent.change(screen.getByLabelText("Employer"), {
-      target: { value: "Xiquel" },
-    });
-    fireEvent.change(screen.getByLabelText("Start date"), {
-      target: { value: "2026-02-02" },
-    });
-    fireEvent.change(screen.getByLabelText(/Description/), {
-      target: { value: "Did things" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Add experience" }));
-
-    await waitFor(() =>
-      expect(screen.getByText("Software Developer")).toBeInTheDocument()
+    await screen.findByText("Add a role");
+    fillNewRole();
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Add experience" })[0]
     );
-    expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok");
+
+    await waitFor(() => expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok"));
     expect(createExperienceMock).toHaveBeenNthCalledWith(
       2,
       "new-tok",
-      expect.objectContaining({ jobTitle: "Dev" })
+      expect.objectContaining({ jobTitle: "Software Developer" })
     );
   });
 });

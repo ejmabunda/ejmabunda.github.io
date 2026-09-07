@@ -43,7 +43,9 @@ const sample = [
   { id: "2", name: "GitHub", skillCategory: "Platform" as const },
 ];
 
-function renderManager(overrides: Partial<React.ComponentProps<typeof SkillsManager>> = {}) {
+function renderManager(
+  overrides: Partial<React.ComponentProps<typeof SkillsManager>> = {}
+) {
   return render(
     <SkillsManager
       token="tok"
@@ -54,18 +56,28 @@ function renderManager(overrides: Partial<React.ComponentProps<typeof SkillsMana
   );
 }
 
+/** The skill names appear twice on screen (table + preview chips) — scope
+ *  name lookups to the table so a match is unambiguous. */
+function inTable() {
+  return within(document.querySelector(".admin-skill-scroll") as HTMLElement);
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 describe("SkillsManager", () => {
-  it("lists existing skills once loaded", async () => {
+  it("lists existing skills once loaded and reports the count", async () => {
     getSkillsFreshMock.mockResolvedValue(sample);
-    renderManager();
+    const onCountChange = vi.fn();
+    renderManager({ onCountChange });
 
-    expect(await screen.findByText("C#")).toBeInTheDocument();
-    expect(screen.getByText("GitHub")).toBeInTheDocument();
+    await screen.findByText("Skill list");
+    expect(inTable().getByText("C#")).toBeInTheDocument();
+    expect(inTable().getByText("GitHub")).toBeInTheDocument();
+    expect(onCountChange).toHaveBeenLastCalledWith(2);
+    expect(screen.getByText("2 live")).toBeInTheDocument();
   });
 
   it("shows an error state when the list fails to load", async () => {
@@ -100,9 +112,11 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill category"), {
       target: { value: "CloudAndDevOps" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
 
-    await waitFor(() => expect(screen.getByText("Docker")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(inTable().getByText("Docker")).toBeInTheDocument()
+    );
     expect(createSkillMock).toHaveBeenCalledWith("tok", {
       name: "Docker",
       skillCategory: 4,
@@ -118,7 +132,7 @@ describe("SkillsManager", () => {
     });
     renderManager();
 
-    await screen.findByText("C#");
+    await screen.findByText("Skill list");
     fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     fireEvent.change(screen.getByLabelText("Rename C#"), {
       target: { value: "C# / .NET" },
@@ -126,7 +140,7 @@ describe("SkillsManager", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(screen.getByText("C# / .NET")).toBeInTheDocument()
+      expect(inTable().getByText("C# / .NET")).toBeInTheDocument()
     );
     expect(updateSkillMock).toHaveBeenCalledWith("tok", {
       id: "1",
@@ -140,7 +154,7 @@ describe("SkillsManager", () => {
     deleteSkillMock.mockResolvedValue(undefined);
     renderManager();
 
-    await screen.findByText("GitHub");
+    await screen.findByText("Skill list");
     fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
     const dialog = screen.getByRole("dialog");
     expect(
@@ -173,9 +187,11 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
 
-    await waitFor(() => expect(screen.getByText("Docker")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(inTable().getByText("Docker")).toBeInTheDocument()
+    );
     expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok");
     expect(createSkillMock).toHaveBeenNthCalledWith(2, "new-tok", {
       name: "Docker",
@@ -194,7 +210,7 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
 
     await waitFor(() => expect(onLoggedOut).toHaveBeenCalledTimes(1));
   });

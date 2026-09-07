@@ -38,7 +38,8 @@ src/
   lib/                 API clients — config, authApi, profileApi, skillApi,
                        experienceApi, apiErrors
 docs/                  Integration notes (skill-api-handover.md,
-                       experience-api-handover.md)
+                       experience-api-handover.md,
+                       admin-dashboard-handover.md)
 ```
 
 Design tokens (colors, spacing, radii, shadows, fonts) live as CSS custom

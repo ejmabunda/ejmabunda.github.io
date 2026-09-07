@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __resetExperienceCacheForTests,
   createExperience,
+  deleteExperience,
   getExperiences,
   getExperiencesFresh,
+  updateExperience,
   UnauthorizedError,
   type Experience,
 } from "./experienceApi";
@@ -149,6 +151,79 @@ describe("experienceApi", () => {
           skillIds: ["missing"],
         })
       ).rejects.toThrow("Create experience failed with 400");
+    });
+  });
+
+  describe("updateExperience", () => {
+    it("puts to /{id} with the changed fields and returns the updated entry", async () => {
+      const updated = { ...sample[0], jobTitle: "Senior Developer" };
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, updated));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const result = await updateExperience("token-abc", "a", {
+        jobTitle: "Senior Developer",
+        skillIds: ["s1", "s2"],
+      });
+
+      expect(result).toEqual(updated);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(String(url)).toMatch(/\/api\/Experience\/a$/);
+      expect(init).toMatchObject({ method: "PUT" });
+      expect(init.headers.Authorization).toBe("Bearer token-abc");
+      expect(JSON.parse(init.body)).toEqual({
+        jobTitle: "Senior Developer",
+        skillIds: ["s1", "s2"],
+      });
+    });
+
+    it("throws UnauthorizedError on 401", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(401)));
+
+      await expect(
+        updateExperience("expired", "a", { jobTitle: "x" })
+      ).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("throws a generic error on other failures", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(404)));
+
+      await expect(
+        updateExperience("token", "gone", { jobTitle: "x" })
+      ).rejects.toThrow("Update experience failed with 404");
+    });
+  });
+
+  describe("deleteExperience", () => {
+    it("sends the id in the route and resolves on 204", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse(204));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await expect(deleteExperience("token-abc", "a")).resolves.toBeUndefined();
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(String(url)).toMatch(/\/api\/Experience\/a$/);
+      expect(init).toMatchObject({ method: "DELETE" });
+    });
+
+    it("treats 404 as already-deleted rather than an error", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(404)));
+
+      await expect(deleteExperience("token-abc", "gone")).resolves.toBeUndefined();
+    });
+
+    it("throws UnauthorizedError on 401", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(401)));
+
+      await expect(deleteExperience("expired", "a")).rejects.toThrow(
+        UnauthorizedError
+      );
+    });
+
+    it("throws a generic error on other failures", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(500)));
+
+      await expect(deleteExperience("token-abc", "a")).rejects.toThrow(
+        "Delete experience failed with 500"
+      );
     });
   });
 });

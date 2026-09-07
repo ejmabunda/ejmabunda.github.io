@@ -69,15 +69,21 @@
      handoff's default green, per its own "reconcile before shipping" note. */
   --admin-bg: oklch(98% 0.003 260);
   --admin-surface: oklch(100% 0 0);
+  --admin-fill: oklch(96% 0.004 260);
   --admin-border: oklch(89% 0.005 260);
+  --admin-divider: oklch(93% 0.004 260);
   --admin-text: oklch(22% 0.006 260);
   --admin-text-muted: oklch(46% 0.008 260);
   --admin-text-faint: oklch(60% 0.008 260);
   --admin-accent: oklch(46% 0.14 52);
   --admin-accent-text: oklch(98% 0.01 52);
+  --admin-accent-tint: oklch(95% 0.035 52);
+  --admin-accent-border: oklch(78% 0.1 52);
+  --admin-accent-on-tint: oklch(42% 0.13 52);
   --admin-danger: oklch(50% 0.18 25);
   --admin-danger-text: oklch(98% 0.01 25);
   --admin-danger-bg: oklch(94% 0.04 25);
+  --admin-danger-border: oklch(84% 0.06 25);
   --admin-success-bg: oklch(93% 0.05 52);
   --admin-overlay: oklch(20% 0.006 260 / 0.55);
 }
@@ -97,15 +103,21 @@
 
   --admin-bg: oklch(14% 0.004 260);
   --admin-surface: oklch(19% 0.006 260);
+  --admin-fill: oklch(17% 0.006 260);
   --admin-border: oklch(30% 0.008 260);
+  --admin-divider: oklch(23% 0.006 260);
   --admin-text: oklch(93% 0.004 260);
   --admin-text-muted: oklch(68% 0.008 260);
-  --admin-text-faint: oklch(50% 0.008 260);
+  --admin-text-faint: oklch(53% 0.008 260);
   --admin-accent: oklch(78% 0.15 52);
   --admin-accent-text: oklch(14% 0.02 52);
+  --admin-accent-tint: oklch(23% 0.035 52);
+  --admin-accent-border: oklch(50% 0.11 52);
+  --admin-accent-on-tint: oklch(85% 0.12 52);
   --admin-danger: oklch(72% 0.17 25);
   --admin-danger-text: oklch(14% 0.02 25);
   --admin-danger-bg: oklch(24% 0.05 25);
+  --admin-danger-border: oklch(33% 0.035 25);
   --admin-success-bg: oklch(22% 0.05 52);
   --admin-overlay: oklch(10% 0.004 260 / 0.72);
 }
@@ -656,23 +668,6 @@
     gap: 6px;
   }
 
-  .admin-top-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 12px;
-  }
-  .admin-top-link {
-    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
-      monospace;
-    color: var(--admin-text-muted);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-  }
-  .admin-top-link:hover {
-    color: var(--admin-text);
-  }
-
   .admin-wordmark {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
@@ -879,33 +874,6 @@
     }
   }
 
-  /* Admin — section tabs (Profile / Skills) */
-  .admin-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 16px;
-  }
-  .admin-tab {
-    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
-      monospace;
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    padding: 7px 14px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--admin-text-muted);
-    cursor: pointer;
-  }
-  .admin-tab:hover {
-    color: var(--admin-text);
-  }
-  .admin-tab[data-active="true"] {
-    background: var(--admin-surface);
-    border-color: var(--admin-border);
-    color: var(--admin-text);
-  }
-
   /* Admin — <select> styled to match .admin-input-plain. Native dropdown
      arrow is replaced with an inline SVG so its inset from the edge is ours
      to control (the native arrow ignores padding in most browsers). */
@@ -927,127 +895,10 @@
     background-position: right 14px center;
   }
 
-  /* Admin — skills list */
-  .admin-skill-add {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-  .admin-skill-add .admin-input-plain {
-    flex: 1 1 140px;
-    margin-bottom: 0;
-  }
-  .admin-skill-add .admin-select {
-    flex: 1 1 160px;
-    width: auto;
-  }
-  .admin-skill-add-btn {
-    width: auto;
-    margin-top: 0;
-    flex: none;
-  }
-
-  .admin-skill-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .admin-skill-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    border-top: 1px solid var(--admin-border);
-  }
-  .admin-skill-row:last-child {
-    border-bottom: 1px solid var(--admin-border);
-  }
-  .admin-skill-name {
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .admin-skill-cat {
-    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
-      monospace;
-    font-size: 11px;
-    color: var(--admin-text-faint);
-    margin-right: auto;
-  }
-  .admin-skill-actions {
-    display: flex;
-    gap: 6px;
-    flex: none;
-  }
-  .admin-skill-row.is-editing {
-    padding: 12px 0;
-  }
-  .admin-skill-edit {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-  }
-  .admin-skill-edit .admin-input-plain {
-    flex: 1 1 140px;
-    margin-bottom: 0;
-  }
-  .admin-skill-edit .admin-select {
-    flex: 1 1 160px;
-    width: auto;
-  }
-
-  /* Admin — experience (create-only) */
+  /* Inline "(optional)" / hint text inside a field label. */
   .admin-faint {
     color: var(--admin-text-faint);
     font-weight: 400;
-  }
-  .admin-experience-form {
-    margin-bottom: 22px;
-  }
-  .admin-experience-dates {
-    display: flex;
-    flex-wrap: wrap;
-    /* bottom-align so both inputs stay level even when one label wraps */
-    align-items: flex-end;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .admin-experience-dates > div {
-    flex: 1 1 160px;
-    display: flex;
-    flex-direction: column;
-  }
-  .admin-experience-dates .admin-input-plain {
-    width: 100%;
-    margin-bottom: 0;
-  }
-  .admin-experience-skills {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .admin-experience-skill-group {
-    border: 1px solid var(--admin-border);
-    border-radius: 10px;
-    padding: 8px 12px 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-  }
-  .admin-experience-skill-group legend {
-    padding: 0 4px;
-  }
-  .admin-experience-skill-option {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--admin-text);
-    cursor: pointer;
   }
 
   .admin-overlay {
@@ -1073,6 +924,816 @@
     gap: 8px;
     justify-content: flex-end;
     margin-top: 18px;
+  }
+
+  /* ============================================================
+     Admin — redesigned shell & screens (design handoff, turn 2)
+     Mobile-first: tab row + scrolling content + fixed footer.
+     The rail / action-bar / context-column layout kicks in at
+     1024px. Accent tokens stay on the site's hue (52).
+     ============================================================ */
+
+  .admin-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Mobile top row: back-to-site / log out */
+  .admin-shell-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 16px 12px;
+  }
+  .admin-shell-link {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  .admin-shell-link:hover {
+    color: var(--admin-text);
+  }
+
+  /* Mobile tab row */
+  .admin-tabrow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 0 16px 14px;
+  }
+  .admin-tabrow-tab {
+    text-align: center;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    padding: 9px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    transition: background-color 0.14s ease, border-color 0.14s ease,
+      color 0.14s ease;
+  }
+  .admin-tabrow-tab[data-active="true"] {
+    background: var(--admin-accent-tint);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent-on-tint);
+  }
+
+  /* Desktop rail */
+  .admin-rail {
+    display: none;
+  }
+
+  .admin-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Action bar — desktop header on wide, fixed footer on mobile */
+  .admin-actionbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+    background: var(--admin-fill);
+    border-top: 1px solid var(--admin-divider);
+  }
+  .admin-actionbar-title,
+  .admin-actionbar-saved {
+    display: none;
+  }
+  .admin-actionbar-status {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    color: var(--admin-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-actionbar-status[data-dirty="true"] {
+    color: var(--admin-accent-on-tint);
+  }
+  .admin-actionbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+
+  .admin-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    color: var(--admin-accent-on-tint);
+    background: var(--admin-accent-tint);
+    border-radius: 20px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .admin-pill::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Primary action button — used in the action bar and standalone */
+  .admin-btn-action {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: none;
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .admin-btn-action:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  .admin-btn-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .admin-btn-action[data-idle="true"] {
+    background: var(--admin-border);
+    color: var(--admin-text-muted);
+  }
+  /* Small mono outline button — Edit / Cancel / + New / Delete-in-list */
+  .admin-btn-mini {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--admin-border);
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .admin-btn-mini:hover:not(:disabled) {
+    color: var(--admin-text);
+    border-color: var(--admin-text-faint);
+  }
+  .admin-btn-mini[data-tone="danger"] {
+    color: var(--admin-danger);
+    border-color: var(--admin-danger-border);
+  }
+  .admin-btn-mini[data-tone="accent"] {
+    color: var(--admin-accent-on-tint);
+    border-color: var(--admin-accent-border);
+    background: var(--admin-accent-tint);
+  }
+  .admin-btn-mini[data-solid="true"] {
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+    border-color: transparent;
+  }
+  .admin-btn-mini:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Body / content area */
+  .admin-body {
+    flex: 1;
+    min-height: 0;
+    padding: 0 16px;
+    padding-bottom: 96px; /* clear the fixed footer */
+  }
+  .admin-content-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .admin-context {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .admin-context-panel {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .admin-context-label {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--admin-text-faint);
+    display: block;
+    margin-bottom: 14px;
+  }
+  .admin-context-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--admin-text-muted);
+  }
+  .admin-context-row + .admin-context-row {
+    margin-top: 11px;
+  }
+  .admin-context-row b {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-weight: 400;
+    color: var(--admin-text);
+  }
+  .admin-context-row b[data-accent="true"] {
+    color: var(--admin-accent-on-tint);
+  }
+
+  /* Preview panels (profile + skills context) */
+  .admin-preview-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .admin-preview-profile .p-title {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .admin-preview-profile .p-headline {
+    font-size: 13px;
+    color: var(--admin-accent-on-tint);
+  }
+  .admin-preview-profile .p-subtitle {
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .admin-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .admin-chip {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
+    white-space: nowrap;
+  }
+
+  /* Card header block (skills / experience) */
+  .admin-card-head {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--admin-divider);
+  }
+  .admin-card-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Field grid (profile + experience editor) */
+  .admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 16px;
+  }
+  .admin-field > .admin-label {
+    margin: 0;
+  }
+  .admin-field .admin-input-plain,
+  .admin-field .admin-textarea,
+  .admin-field .admin-select {
+    margin-bottom: 0;
+  }
+  .admin-field-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+  .admin-field-dates > .admin-field {
+    flex: 1 1 150px;
+  }
+
+  /* Skills table */
+  .admin-skill-add-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .admin-table-head,
+  .admin-skill-tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+  .admin-table-head {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--admin-divider);
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    color: var(--admin-text-faint);
+  }
+  .admin-table-head .col-cat {
+    display: none;
+  }
+  .admin-skill-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+  .admin-skill-tr {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--admin-divider);
+  }
+  .admin-skill-tr:last-child {
+    border-bottom: none;
+  }
+  .admin-skill-tr[data-editing="true"] {
+    background: var(--admin-accent-tint);
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .admin-skill-tr .s-name {
+    font-size: 14px;
+  }
+  .admin-skill-tr .s-cat {
+    display: none;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-skill-tr .s-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .admin-skill-edit-fields {
+    display: contents;
+  }
+  .admin-skill-edit-fields .admin-input-plain,
+  .admin-skill-edit-fields .admin-select {
+    margin-bottom: 0;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .admin-skill-edit-fields .admin-input-plain {
+    border-color: var(--admin-accent-border);
+  }
+  .admin-skill-group-head {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    color: var(--admin-text-faint);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--admin-divider);
+    border-top: 1px solid var(--admin-divider);
+  }
+  .admin-skill-group:first-child .admin-skill-group-head {
+    border-top: none;
+  }
+
+  /* Experience — skills-used toggle pills */
+  .admin-pillset {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--admin-divider);
+  }
+  .admin-pillset-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .admin-pillset-count {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    color: var(--admin-accent-on-tint);
+  }
+  .admin-pillset-group {
+    margin-bottom: 14px;
+  }
+  .admin-pillset-group-label {
+    display: block;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--admin-text-faint);
+    margin-bottom: 9px;
+  }
+  .admin-pillset-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .admin-toggle-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--admin-border);
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.14s ease, border-color 0.14s ease,
+      color 0.14s ease;
+  }
+  .admin-toggle-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--admin-text-faint);
+  }
+  .admin-toggle-pill[data-on="true"] {
+    border-color: var(--admin-accent-border);
+    background: var(--admin-accent-tint);
+    color: var(--admin-accent-on-tint);
+  }
+  .admin-toggle-pill[data-on="true"]::before {
+    background: var(--admin-accent);
+    border-color: transparent;
+  }
+
+  /* Experience — timeline panel */
+  .admin-timeline {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .admin-timeline-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px 13px;
+    border-bottom: 1px solid var(--admin-divider);
+  }
+  .admin-timeline-scroll {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .admin-timeline-row {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--admin-divider);
+    cursor: pointer;
+    background: transparent;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.14s ease;
+  }
+  .admin-timeline-row:last-child {
+    border-bottom: none;
+  }
+  .admin-timeline-row:hover {
+    background: color-mix(in srgb, var(--admin-text) 4%, transparent);
+  }
+  .admin-timeline-row[data-active="true"] {
+    background: var(--admin-accent-tint);
+  }
+  .admin-timeline-mark {
+    width: 2px;
+    border-radius: 2px;
+    flex: none;
+    background: var(--admin-border);
+  }
+  .admin-timeline-row[data-active="true"] .admin-timeline-mark {
+    background: var(--admin-accent);
+  }
+  .admin-timeline-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+  }
+  .admin-timeline-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .admin-timeline-meta {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    color: var(--admin-text-muted);
+    line-height: 1.5;
+  }
+  .admin-timeline-chevron {
+    align-self: center;
+    color: var(--admin-text-faint);
+    font-size: 18px;
+    flex: none;
+  }
+  .admin-timeline-editrow {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .admin-editing-chip {
+    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    padding: 4px 9px;
+    border-radius: 5px;
+    background: var(--admin-accent-tint);
+    color: var(--admin-accent-on-tint);
+  }
+  .admin-note-dashed {
+    border: 1px dashed var(--admin-border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--admin-text-muted);
+  }
+
+  .admin-exp-mobile-back {
+    margin-bottom: 12px;
+  }
+  /* Experience — below the desktop breakpoint, show one pane at a time */
+  @media (max-width: 1023px) {
+    .admin-exp-submit {
+      display: none;
+    }
+    .admin-content-grid[data-mobile-view="list"] [data-exp-pane="editor"] {
+      display: none;
+    }
+    .admin-content-grid[data-mobile-view="editor"]
+      [data-exp-pane="list"]
+      .admin-timeline,
+    .admin-content-grid[data-mobile-view="editor"]
+      [data-exp-pane="list"]
+      .admin-note-dashed {
+      display: none;
+    }
+    .admin-content-grid[data-mobile-view="list"] .admin-exp-mobile-back {
+      display: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .admin-shell {
+      flex-direction: row;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .admin-shell-top,
+    .admin-tabrow {
+      display: none;
+    }
+
+    .admin-rail {
+      display: flex;
+      flex-direction: column;
+      width: 236px;
+      flex: none;
+      padding: 20px 16px;
+      background: var(--admin-fill);
+      border-right: 1px solid var(--admin-border);
+    }
+    .admin-rail-wordmark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 4px 22px;
+    }
+    .admin-rail-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--admin-accent);
+      color: var(--admin-accent-text);
+      font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .admin-rail-brand {
+      font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 13px;
+      display: block;
+    }
+    .admin-rail-sub {
+      font-size: 11px;
+      color: var(--admin-text-faint);
+      display: block;
+      margin-top: 1px;
+    }
+    .admin-rail-group {
+      font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--admin-text-faint);
+      padding: 0 4px 8px;
+    }
+    .admin-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--admin-text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.14s ease, color 0.14s ease;
+    }
+    .admin-nav-item:hover {
+      color: var(--admin-text);
+    }
+    .admin-nav-item[data-active="true"] {
+      background: var(--admin-accent-tint);
+      color: var(--admin-text);
+    }
+    .admin-nav-item-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .admin-nav-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--admin-text-faint);
+    }
+    .admin-nav-item[data-active="true"] .admin-nav-dot {
+      background: var(--admin-accent);
+    }
+    .admin-nav-count {
+      font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--admin-text-faint);
+    }
+    .admin-rail-spacer {
+      flex: 1;
+    }
+    .admin-rail-foot {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-top: 1px solid var(--admin-border);
+      padding-top: 14px;
+    }
+    .admin-rail-foot .admin-shell-link {
+      padding: 8px 10px;
+    }
+
+    .admin-actionbar {
+      position: static;
+      justify-content: space-between;
+      padding: 20px 32px;
+      background: transparent;
+      border-top: none;
+      border-bottom: 1px solid var(--admin-divider);
+    }
+    .admin-actionbar-status {
+      display: none;
+    }
+    .admin-actionbar-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 19px;
+      font-weight: 600;
+    }
+    .admin-actionbar-saved {
+      display: inline;
+      font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--admin-text-faint);
+      margin-right: 4px;
+    }
+
+    .admin-body {
+      overflow-y: auto;
+      padding: 32px;
+      padding-bottom: 32px;
+    }
+    .admin-content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 288px;
+      gap: 28px;
+      align-items: start;
+    }
+    .admin-context {
+      gap: 16px;
+    }
+    .admin-context-panel {
+      padding: 20px;
+    }
+
+    .admin-field-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 22px;
+    }
+    .admin-field-grid-2 .admin-field-full {
+      grid-column: span 2;
+    }
+
+    .admin-card-head {
+      padding: 26px 26px 20px;
+    }
+    .admin-skill-add-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px auto;
+      gap: 10px;
+    }
+    .admin-table-head,
+    .admin-skill-tr {
+      grid-template-columns: minmax(0, 1fr) 200px 132px;
+    }
+    .admin-table-head .col-cat {
+      display: block;
+    }
+    .admin-skill-tr .s-cat {
+      display: block;
+    }
+    .admin-skill-scroll {
+      max-height: 440px;
+      overflow-y: auto;
+    }
+    .admin-skill-edit-fields .admin-select {
+      max-width: 200px;
+    }
+    .admin-skill-group-head {
+      display: none;
+    }
+
+    .admin-timeline {
+      max-height: 640px;
+    }
+    .admin-timeline-chevron {
+      display: none;
+    }
+    .admin-exp-mobile-back {
+      display: none;
+    }
+
+    .admin-card-scrollable {
+      display: flex;
+      flex-direction: column;
+      max-height: 668px;
+    }
+    .admin-card-scrollable .admin-skill-scroll {
+      flex: 1;
+      max-height: none;
+    }
   }
 
   /* API wake-up notice — shown when a data request has stalled long enough
