@@ -1075,6 +1075,86 @@
     margin-top: 18px;
   }
 
+  /* API wake-up notice — shown when a data request has stalled long enough
+     that the free-tier backend is almost certainly cold-starting. */
+  .wake-notice-region {
+    position: fixed;
+    left: 50%;
+    bottom: var(--spacing-xl);
+    transform: translateX(-50%);
+    z-index: 90;
+    width: min(420px, calc(100vw - 2 * var(--spacing-lg)));
+    pointer-events: none;
+  }
+  .wake-notice {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-divider);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-lg);
+    font-size: 13px;
+    line-height: 1.5;
+    animation: wake-notice-in 0.24s ease-out;
+  }
+  @keyframes wake-notice-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .wake-notice-dot {
+    flex: none;
+    margin-top: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    animation: wake-notice-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes wake-notice-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  .wake-notice-text {
+    flex: 1;
+    margin: 0;
+  }
+  .wake-notice-close {
+    flex: none;
+    margin: -2px -2px 0 0;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    opacity: 0.55;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .wake-notice-close:hover {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wake-notice,
+    .wake-notice-dot {
+      animation: none;
+    }
+  }
+
   @media (max-width: 720px) {
     .wrap {
       padding: 0 20px;

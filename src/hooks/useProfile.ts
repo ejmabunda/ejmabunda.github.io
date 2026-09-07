@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getProfile, type ProfileApiData } from "@/lib/profileApi";
+import { trackApiRequest } from "@/lib/apiWake";
 
 export type ProfileState =
   | { status: "loading" }
@@ -14,6 +15,7 @@ export function useProfile(): ProfileState {
 
   useEffect(() => {
     let cancelled = false;
+    const settle = trackApiRequest();
 
     getProfile()
       .then((data) => {
@@ -23,10 +25,12 @@ export function useProfile(): ProfileState {
       .catch(() => {
         if (cancelled) return;
         setState({ status: "error" });
-      });
+      })
+      .finally(settle);
 
     return () => {
       cancelled = true;
+      settle();
     };
   }, []);
 
