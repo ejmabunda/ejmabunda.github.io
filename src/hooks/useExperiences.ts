@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getExperiences, type Experience } from "@/lib/experienceApi";
+import { trackApiRequest } from "@/lib/apiWake";
 
 export type ExperiencesState =
   | { status: "loading" }
@@ -14,6 +15,7 @@ export function useExperiences(): ExperiencesState {
 
   useEffect(() => {
     let cancelled = false;
+    const settle = trackApiRequest();
 
     getExperiences()
       .then((data) => {
@@ -25,10 +27,12 @@ export function useExperiences(): ExperiencesState {
       .catch(() => {
         if (cancelled) return;
         setState({ status: "error" });
-      });
+      })
+      .finally(settle);
 
     return () => {
       cancelled = true;
+      settle();
     };
   }, []);
 
