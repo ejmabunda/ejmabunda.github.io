@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "./config";
 import { UnauthorizedError } from "./apiErrors";
+import { fetchWithTimeout, retryThroughColdStart } from "./coldStartRetry";
 import type { TagTone } from "@/content/types";
 
 export { UnauthorizedError };
@@ -74,42 +75,16 @@ export interface SkillUpdateInput {
 
 const SKILL_ENDPOINT = () => `${API_BASE_URL}/api/Skill`;
 
-const REQUEST_TIMEOUT_MS = 10_000;
-// Same cold-start story as the profile endpoint: the backing DB is a serverless
-// tier that suspends after inactivity, so the first request after a quiet period
-// can hang or time out while it wakes — a short wait then a retry recovers.
-const RETRY_DELAYS_MS = [3_000, 5_000];
-
-function delay(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
-
 async function fetchSkillsOnce(): Promise<Skill[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const res = await fetch(SKILL_ENDPOINT(), { signal: controller.signal });
-    if (!res.ok) throw new Error(`Skill API responded with ${res.status}`);
-    // The list endpoint returns `[]` (not a 404) when there are no skills.
-    return (await res.json()) as Skill[];
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await fetchWithTimeout(SKILL_ENDPOINT());
+  if (!res.ok) throw new Error(`Skill API responded with ${res.status}`);
+  // The list endpoint returns `[]` (not a 404) when there are no skills.
+  return (await res.json()) as Skill[];
 }
 
-async function fetchSkillsWithRetry(): Promise<Skill[]> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      return await fetchSkillsOnce();
-    } catch (err) {
-      lastError = err;
-      if (attempt < RETRY_DELAYS_MS.length) {
-        await delay(RETRY_DELAYS_MS[attempt]);
-      }
-    }
-  }
-  throw lastError;
+// Keeps retrying across the full free-tier cold-start window (see coldStartRetry).
+function fetchSkillsWithRetry(): Promise<Skill[]> {
+  return retryThroughColdStart(fetchSkillsOnce);
 }
 
 let cachedSkills: Promise<Skill[]> | null = null;

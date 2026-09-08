@@ -73,23 +73,25 @@ describe("profileApi", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("gives up after exhausting retries, and lets a later call retry fresh", async () => {
+  it("keeps retrying across the cold-start window, then gives up and lets a later call retry fresh", async () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error("network error"));
     vi.stubGlobal("fetch", fetchMock);
 
     const resultPromise = getProfile();
     const expectation = expect(resultPromise).rejects.toThrow("network error");
-    await vi.advanceTimersByTimeAsync(3_000);
-    await vi.advanceTimersByTimeAsync(5_000);
+    // Drive the full ~240s budget so the retry loop exhausts.
+    await vi.advanceTimersByTimeAsync(240_000);
     await expectation;
 
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    // Far more than the old fixed 3 attempts — it kept trying the whole window.
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(10);
+    const callsWhileFailing = fetchMock.mock.calls.length;
 
     fetchMock.mockResolvedValue(jsonResponse(200, sampleProfile));
     const retryResult = await getProfile();
 
     expect(retryResult).toEqual(sampleProfile);
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(callsWhileFailing + 1);
   });
 
   it("getProfileFresh bypasses the cache used by getProfile", async () => {
