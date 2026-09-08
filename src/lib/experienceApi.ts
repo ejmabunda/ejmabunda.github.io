@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "./config";
 import { UnauthorizedError } from "./apiErrors";
+import { fetchWithTimeout, retryThroughColdStart } from "./coldStartRetry";
 import type { Skill } from "./skillApi";
 
 export { UnauthorizedError };
@@ -47,43 +48,16 @@ export interface ExperienceUpdateInput {
 
 const EXPERIENCE_ENDPOINT = () => `${API_BASE_URL}/api/Experience`;
 
-const REQUEST_TIMEOUT_MS = 10_000;
-// Same cold-start story as the skill and profile endpoints: the backing DB is a
-// serverless tier that suspends after inactivity, so the first request after a
-// quiet period can hang or time out while it wakes — a short wait then a retry
-// recovers.
-const RETRY_DELAYS_MS = [3_000, 5_000];
-
-function delay(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
-
 async function fetchExperiencesOnce(): Promise<Experience[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const res = await fetch(EXPERIENCE_ENDPOINT(), { signal: controller.signal });
-    if (!res.ok) throw new Error(`Experience API responded with ${res.status}`);
-    // The list endpoint returns `[]` (not a 404) when there are no experiences.
-    return (await res.json()) as Experience[];
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await fetchWithTimeout(EXPERIENCE_ENDPOINT());
+  if (!res.ok) throw new Error(`Experience API responded with ${res.status}`);
+  // The list endpoint returns `[]` (not a 404) when there are no experiences.
+  return (await res.json()) as Experience[];
 }
 
-async function fetchExperiencesWithRetry(): Promise<Experience[]> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      return await fetchExperiencesOnce();
-    } catch (err) {
-      lastError = err;
-      if (attempt < RETRY_DELAYS_MS.length) {
-        await delay(RETRY_DELAYS_MS[attempt]);
-      }
-    }
-  }
-  throw lastError;
+// Keeps retrying across the full free-tier cold-start window (see coldStartRetry).
+function fetchExperiencesWithRetry(): Promise<Experience[]> {
+  return retryThroughColdStart(fetchExperiencesOnce);
 }
 
 let cachedExperiences: Promise<Experience[]> | null = null;
