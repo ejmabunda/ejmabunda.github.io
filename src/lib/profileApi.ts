@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "./config";
 import { UnauthorizedError } from "./apiErrors";
+import { fetchWithTimeout, retryThroughColdStart } from "./coldStartRetry";
 
 export { UnauthorizedError };
 
@@ -18,44 +19,18 @@ export interface ProfileInput {
 
 const PROFILE_ENDPOINT = () => `${API_BASE_URL}/api/Profile`;
 
-const REQUEST_TIMEOUT_MS = 10_000;
-// The backing DB is a serverless tier that suspends after inactivity, so the
-// first request after a quiet period can hang or time out while it wakes —
-// retrying after a short wait reliably succeeds.
-const RETRY_DELAYS_MS = [3_000, 5_000];
-
-function delay(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
-
 async function fetchProfileOnce(): Promise<ProfileApiData | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const res = await fetch(PROFILE_ENDPOINT(), { signal: controller.signal });
-    // The profile is a DB singleton; a missing row is "no data", not an
-    // error, and retrying won't change that.
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`Profile API responded with ${res.status}`);
-    return (await res.json()) as ProfileApiData;
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await fetchWithTimeout(PROFILE_ENDPOINT());
+  // The profile is a DB singleton; a missing row is "no data", not an
+  // error, and retrying won't change that.
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Profile API responded with ${res.status}`);
+  return (await res.json()) as ProfileApiData;
 }
 
-async function fetchProfileWithRetry(): Promise<ProfileApiData | null> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      return await fetchProfileOnce();
-    } catch (err) {
-      lastError = err;
-      if (attempt < RETRY_DELAYS_MS.length) {
-        await delay(RETRY_DELAYS_MS[attempt]);
-      }
-    }
-  }
-  throw lastError;
+// Keeps retrying across the full free-tier cold-start window (see coldStartRetry).
+function fetchProfileWithRetry(): Promise<ProfileApiData | null> {
+  return retryThroughColdStart(fetchProfileOnce);
 }
 
 let cachedProfile: Promise<ProfileApiData | null> | null = null;
