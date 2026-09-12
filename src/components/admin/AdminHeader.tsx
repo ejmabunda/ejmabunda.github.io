@@ -35,16 +35,18 @@ export default function AdminHeader({
           <span className="admin-endpoint admin-mono">{endpoint}</span>
         </div>
         <div className="admin-header-actions">
-          <AdminThemeToggle />
-          <a
-            className="admin-view-site"
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View site ↗
-          </a>
-          {primaryAction}
+          <span className="admin-header-desktop-actions">
+            <AdminThemeToggle />
+            <a
+              className="admin-view-site"
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View site ↗
+            </a>
+          </span>
+          <div className="admin-header-primary">{primaryAction}</div>
           <div className="admin-header-more">
             <button
               type="button"
@@ -57,6 +59,17 @@ export default function AdminHeader({
             </button>
             {moreOpen && (
               <div className="admin-header-more-panel">
+                <div className="admin-header-more-theme">
+                  <AdminThemeToggle />
+                </div>
+                <a
+                  className="admin-header-more-link"
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View site ↗
+                </a>
                 <span className="admin-header-more-status">
                   <span
                     className="admin-status-dot"

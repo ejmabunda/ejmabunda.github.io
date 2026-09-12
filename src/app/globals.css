@@ -1181,6 +1181,48 @@
     color: var(--admin-ink-2);
     padding: 6px 4px;
   }
+  .admin-header-more-theme {
+    display: flex;
+  }
+  .admin-header-more-theme .admin-theme-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-header-more-link {
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 4px;
+    color: var(--admin-ink);
+    text-decoration: none;
+  }
+  .admin-header-more-link:hover {
+    color: var(--admin-accent);
+  }
+
+  /* Theme toggle + "View site" live in the header on desktop, but there's
+     no room for them next to the title and primary action on a phone —
+     they move into the "more" panel below 900px instead. */
+  .admin-header-desktop-actions {
+    display: none;
+  }
+  /* The screen's primary action ("+ Add skill", "Save changes", …) becomes
+     a full-width bar fixed to the bottom of the viewport on mobile, per
+     the handoff's mobile layout, instead of competing for header space. */
+  .admin-header-primary {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: var(--admin-surface);
+    border-top: 1px solid var(--admin-line);
+  }
+  .admin-header-primary > * {
+    width: 100%;
+    justify-content: center;
+  }
 
   /* mobile pill tab row (replaces the rail below 900px) */
   .admin-tabrow {
@@ -1216,6 +1258,18 @@
     flex: 1;
     min-width: 0;
     background: var(--admin-surface);
+  }
+  /* Split-pane managers wrap their header + body in this (rather than a
+     bare fragment) so the mobile pane state is available to CSS as a
+     data attribute — needed to hide the header's fixed mobile action bar
+     while the record editor's own sticky footer is showing instead. It
+     stands in for .admin-main's own flex behavior for its children. */
+  .admin-manager-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
   }
 
   .admin-header {
@@ -1349,20 +1403,32 @@
   .admin-body {
     flex: 1;
     min-height: 0;
+    /* room for the fixed mobile primary-action bar so it doesn't cover
+       the last row/field — reset once that bar goes back to sitting
+       inline in the header at the 900px breakpoint. */
+    padding-bottom: 76px;
   }
   /* Profile is the one screen whose content isn't already flush against
      22px-gutter sections of its own — it gets a uniform page padding. */
   .admin-body-padded {
-    padding: 16px;
+    padding: 16px 16px 76px;
   }
   /* The split-pane screens (Experience / Qualifications / Certifications)
      scroll their list and editor independently rather than as one long
-     page — the body itself stops scrolling and hands that off to
-     .admin-split-list / .admin-split-editor. */
+     page once there's room for them side by side (see the 1180px block
+     below, which is also where this stops self-scrolling and hands that
+     off to .admin-split-list / .admin-split-editor). Below that they
+     stack and this stays a normal scrolling block, same as any other
+     screen. */
   .admin-body-split {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    padding-bottom: 76px;
+  }
+  /* ...except while the editor pane (with its own sticky footer) is
+     showing on mobile — nothing else needs the extra room then. */
+  [data-mobile-view="editor"] .admin-body-split {
+    padding-bottom: 0;
   }
 
   /* ---- generic page chrome shared by every screen ---- */
@@ -1937,6 +2003,11 @@
       background: var(--admin-bg);
       padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     }
+    /* The editor pane has its own sticky Save/Cancel/Delete bar — don't
+       also show the header's fixed "+ Add" bar underneath/behind it. */
+    [data-mobile-view="editor"] .admin-header-primary {
+      display: none;
+    }
     .admin-btn-primary,
     .admin-btn-secondary,
     .admin-btn-danger,
@@ -1955,6 +2026,22 @@
     .admin-header-more,
     .admin-tabrow {
       display: none;
+    }
+    .admin-header-desktop-actions {
+      display: contents;
+    }
+    .admin-header-primary {
+      position: static;
+      padding: 0;
+      background: none;
+      border-top: none;
+      z-index: auto;
+    }
+    .admin-header-primary > * {
+      width: auto;
+    }
+    .admin-body-split {
+      padding-bottom: 0;
     }
 
     .admin-shell {
@@ -2162,6 +2249,7 @@
 
     .admin-body {
       overflow-y: auto;
+      padding-bottom: 0;
     }
     .admin-body-padded {
       padding: 20px 22px;
