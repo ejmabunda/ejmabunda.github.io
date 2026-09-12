@@ -81,7 +81,7 @@ export default function SkillsManager({
   );
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  const [addOpen, setAddOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<SkillCategoryName>(
     SKILL_CATEGORY_NAMES[0]
@@ -128,9 +128,17 @@ export default function SkillsManager({
   }, [filtered]);
 
   function startEdit(skill: Skill) {
+    setIsAdding(false);
     setEditingId(skill.id);
     setEditName(skill.name);
     setEditCategory(skill.skillCategory);
+  }
+
+  function startAdd() {
+    setEditingId(null);
+    setNewName("");
+    setNewCategory(SKILL_CATEGORY_NAMES[0]);
+    setIsAdding(true);
   }
 
   function cancelEdit() {
@@ -170,7 +178,7 @@ export default function SkillsManager({
       setSkills(next);
       onCountChange(next.length);
       setNewName("");
-      setAddOpen(false);
+      setIsAdding(false);
     } catch (err) {
       if (err instanceof UnauthorizedError) onLoggedOut();
     } finally {
@@ -203,6 +211,11 @@ export default function SkillsManager({
         endpoint="/api/Skill"
         waking={waking}
         onLoggedOut={onLoggedOut}
+        primaryAction={
+          <button type="button" className="admin-btn-primary" onClick={startAdd}>
+            + Add skill
+          </button>
+        }
       />
       <div className="admin-body">
         <div className="admin-toolbar">
@@ -262,7 +275,59 @@ export default function SkillsManager({
                 <span>row actions</span>
               </div>
 
-              {groups.length === 0 && (
+              {isAdding && (
+                <div
+                  className="admin-row"
+                  data-cols="skills"
+                  data-editing="true"
+                  style={{ padding: "10px 20px" }}
+                >
+                  <input
+                    className="admin-input"
+                    aria-label="New skill name"
+                    placeholder="Skill name"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    autoFocus
+                  />
+                  <select
+                    className="admin-select"
+                    aria-label="New skill category"
+                    value={newCategory}
+                    onChange={(e) =>
+                      setNewCategory(e.target.value as SkillCategoryName)
+                    }
+                  >
+                    {SKILL_CATEGORY_NAMES.map((name) => (
+                      <option key={name} value={name}>
+                        {CATEGORY_LABEL[name]}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="r-meta admin-mono">—</span>
+                  <span className="r-actions">
+                    <button
+                      type="button"
+                      className="admin-btn-mini"
+                      data-solid="true"
+                      disabled={adding || !newName.trim()}
+                      onClick={handleAdd}
+                    >
+                      {adding ? "Adding…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn-mini"
+                      onClick={() => setIsAdding(false)}
+                      disabled={adding}
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                </div>
+              )}
+
+              {groups.length === 0 && !isAdding && (
                 <div className="admin-empty-row" style={{ padding: "16px 20px" }}>
                   <span>
                     {skills.length === 0
@@ -376,61 +441,6 @@ export default function SkillsManager({
             </div>
           </div>
         )}
-
-        {loadStatus === "ready" && (
-          <div className="admin-add-row">
-            {addOpen ? (
-              <div className="admin-add-row-fields">
-                <input
-                  className="admin-input"
-                  placeholder="Skill name"
-                  aria-label="New skill name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  autoFocus
-                />
-                <select
-                  className="admin-select"
-                  aria-label="New skill category"
-                  value={newCategory}
-                  onChange={(e) =>
-                    setNewCategory(e.target.value as SkillCategoryName)
-                  }
-                >
-                  {SKILL_CATEGORY_NAMES.map((name) => (
-                    <option key={name} value={name}>
-                      {CATEGORY_LABEL[name]}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="admin-btn-primary"
-                  disabled={adding || !newName.trim()}
-                  onClick={handleAdd}
-                >
-                  {adding ? "Adding…" : "Add"}
-                </button>
-                <button
-                  type="button"
-                  className="admin-btn-secondary"
-                  onClick={() => setAddOpen(false)}
-                  disabled={adding}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="admin-btn-secondary"
-                onClick={() => setAddOpen(true)}
-              >
-                + Add skill
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {deleteTarget && (
@@ -438,8 +448,6 @@ export default function SkillsManager({
           deleting={deleting}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
-          title={`Delete "${deleteTarget.name}"?`}
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
         />
       )}
     </>

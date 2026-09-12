@@ -250,6 +250,12 @@ export default function QualificationsManager({
         {loadStatus === "loaded" && (
           <div className="admin-split" data-mobile-view={mobileView}>
             <div className="admin-split-list">
+              <div className="admin-list-head" data-cols="qualifications">
+                <span>name</span>
+                <span>institution</span>
+                <span>period</span>
+                <span>nqfLevel</span>
+              </div>
               <div className="admin-list-rows">
                 {qualifications.length === 0 ? (
                   <div className="admin-list-empty">
@@ -277,6 +283,15 @@ export default function QualificationsManager({
                     </button>
                   ))
                 )}
+              </div>
+              <div className="admin-list-add">
+                <button
+                  type="button"
+                  className="admin-btn-soft"
+                  onClick={newQualification}
+                >
+                  + Add qualification
+                </button>
               </div>
             </div>
 
@@ -387,7 +402,7 @@ export default function QualificationsManager({
                     >
                       {NQF_LEVEL_NAMES.map((name) => (
                         <option key={name} value={name}>
-                          NQF {NQF_LEVEL[name]} · {NQF_LEVEL_LABEL[name]}
+                          {NQF_LEVEL_LABEL[name]}
                         </option>
                       ))}
                     </select>
@@ -444,8 +459,6 @@ export default function QualificationsManager({
       {deleteTarget && (
         <DeleteConfirmModal
           deleting={deleting}
-          title={`Delete "${deleteTarget.name}"?`}
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
         />

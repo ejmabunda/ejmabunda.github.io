@@ -115,7 +115,7 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill category"), {
       target: { value: "CloudAndDevOps" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(screen.getByText("Docker")).toBeInTheDocument()
@@ -161,7 +161,7 @@ describe("SkillsManager", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
     const dialog = screen.getByRole("dialog");
     expect(
-      within(dialog).getByRole("heading", { name: 'Delete "GitHub"?' })
+      within(dialog).getByRole("heading", { name: "Delete this record?" })
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
 
@@ -204,7 +204,7 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(screen.getByText("Docker")).toBeInTheDocument()
@@ -228,7 +228,7 @@ describe("SkillsManager", () => {
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onLoggedOut).toHaveBeenCalledTimes(1));
   });

@@ -98,7 +98,7 @@ describe("ProjectsManager", () => {
     renderManager();
 
     await screen.findByText("No records yet.");
-    fireEvent.click(screen.getByRole("button", { name: "+ Add project" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "+ Add project" })[0]);
     fireEvent.change(screen.getByPlaceholderText("Project name"), {
       target: { value: "Portfolio site" },
     });
@@ -106,7 +106,7 @@ describe("ProjectsManager", () => {
       target: { value: "https://ejmabunda.dev" },
     });
     fireEvent.click(screen.getByRole("button", { name: "TypeScript" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add project" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(createProjectMock).toHaveBeenCalledWith("tok", {
@@ -170,14 +170,14 @@ describe("ProjectsManager", () => {
     renderManager({ onTokenRefreshed });
 
     await screen.findByText("No records yet.");
-    fireEvent.click(screen.getByRole("button", { name: "+ Add project" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "+ Add project" })[0]);
     fireEvent.change(screen.getByPlaceholderText("Project name"), {
       target: { value: "Portfolio site" },
     });
     fireEvent.change(screen.getByPlaceholderText("https://…"), {
       target: { value: "https://ejmabunda.dev" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add project" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok"));
     expect(createProjectMock).toHaveBeenNthCalledWith(

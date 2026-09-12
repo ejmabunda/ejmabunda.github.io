@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useApiWaking } from "@/hooks/useApiWaking";
 import ProfileEditor from "./ProfileEditor";
@@ -35,6 +34,9 @@ const CREDENTIAL_TABS: { id: Tab; label: string }[] = [
   { id: "qualifications", label: "Qualifications" },
   { id: "certifications", label: "Certifications" },
 ];
+
+const ADMIN_NAME = "Matimu Mabunda";
+const ADMIN_INITIALS = "MM";
 
 const ALL_TABS = [...CONTENT_TABS, ...CREDENTIAL_TABS];
 
@@ -83,10 +85,10 @@ export default function Dashboard({
         <div className="admin-rail">
           <div className="admin-rail-brand">
             <span className="admin-rail-mark" aria-hidden="true">
-              e
+              M
             </span>
             <span>
-              <span className="admin-rail-brand-name">ejmabunda_</span>
+              <span className="admin-rail-brand-name">ejmabunda.dev</span>
               <span className="admin-rail-brand-sub">admin console</span>
             </span>
           </div>
@@ -129,17 +131,22 @@ export default function Dashboard({
             />
             <span className="admin-rail-status-text">
               <span>{waking ? "API waking…" : "API awake"}</span>
-              <span>session · 7d sliding</span>
+              <span>token · 6d left</span>
             </span>
           </div>
-          <div className="admin-rail-user">
-            <Link href="/" className="admin-shell-link">
-              ← Back to site
-            </Link>
-            <a href="#" className="admin-shell-link" onClick={handleLogOut}>
-              Sign out
-            </a>
-          </div>
+          <button
+            type="button"
+            className="admin-rail-user"
+            onClick={handleLogOut}
+          >
+            <span className="admin-rail-user-avatar" aria-hidden="true">
+              {ADMIN_INITIALS}
+            </span>
+            <span className="admin-rail-user-info">
+              <span>{ADMIN_NAME}</span>
+              <span>Sign out</span>
+            </span>
+          </button>
         </div>
 
         <div className="admin-main">
@@ -203,7 +210,7 @@ function RailItem({
       onClick={() => onSelect(id)}
     >
       <span className="admin-nav-item-label">
-        <span className="admin-nav-icon" aria-hidden="true" />
+        <span className="admin-nav-icon" data-icon={id} aria-hidden="true" />
         {label}
       </span>
       {count !== null && <span className="admin-nav-count">{count}</span>}

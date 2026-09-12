@@ -256,6 +256,12 @@ export default function ExperiencesManager({
         {loadStatus === "loaded" && (
           <div className="admin-split" data-mobile-view={mobileView}>
             <div className="admin-split-list">
+              <div className="admin-list-head" data-cols="experience">
+                <span>jobTitle</span>
+                <span>employer</span>
+                <span>period</span>
+                <span>skills</span>
+              </div>
               <div className="admin-list-rows">
                 {experiences.length === 0 ? (
                   <div className="admin-list-empty">
@@ -283,6 +289,15 @@ export default function ExperiencesManager({
                     </button>
                   ))
                 )}
+              </div>
+              <div className="admin-list-add">
+                <button
+                  type="button"
+                  className="admin-btn-soft"
+                  onClick={newRole}
+                >
+                  + Add role
+                </button>
               </div>
             </div>
 
@@ -444,8 +459,6 @@ export default function ExperiencesManager({
       {deleteTarget && (
         <DeleteConfirmModal
           deleting={deleting}
-          title={`Delete "${deleteTarget.jobTitle}"?`}
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
         />

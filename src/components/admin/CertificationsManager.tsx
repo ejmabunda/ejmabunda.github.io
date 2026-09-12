@@ -240,6 +240,12 @@ export default function CertificationsManager({
         {loadStatus === "loaded" && (
           <div className="admin-split" data-mobile-view={mobileView}>
             <div className="admin-split-list">
+              <div className="admin-list-head" data-cols="certifications">
+                <span>name</span>
+                <span>issuingOrganization</span>
+                <span>issueDate</span>
+                <span>skills</span>
+              </div>
               <div className="admin-list-rows">
                 {certifications.length === 0 ? (
                   <div className="admin-list-empty">
@@ -266,6 +272,15 @@ export default function CertificationsManager({
                     </button>
                   ))
                 )}
+              </div>
+              <div className="admin-list-add">
+                <button
+                  type="button"
+                  className="admin-btn-soft"
+                  onClick={newCertification}
+                >
+                  + Add certification
+                </button>
               </div>
             </div>
 
@@ -405,8 +420,6 @@ export default function CertificationsManager({
       {deleteTarget && (
         <DeleteConfirmModal
           deleting={deleting}
-          title={`Delete "${deleteTarget.name}"?`}
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
         />

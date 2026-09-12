@@ -157,54 +157,61 @@ export default function ProfileEditor({
 
         {loadStatus !== "loading" && (
           <div className="admin-card">
-            <div className="admin-card-body admin-field-grid">
-              <div>
+            <div className="admin-card-body-flush admin-field-grid">
+              <div className="admin-field-grid-item">
                 <div className="admin-label-pair">
                   <label className="human" htmlFor="profile-title">
                     Title
                   </label>
                   <span className="api-name">title</span>
                 </div>
-                <input
-                  id="profile-title"
-                  className="admin-input"
-                  value={form.title}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, title: e.target.value }))
-                  }
-                />
+                <div className="admin-field-grid-field">
+                  <input
+                    id="profile-title"
+                    className="admin-input"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, title: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
-              <div>
+              <div className="admin-field-grid-item">
                 <div className="admin-label-pair">
                   <label className="human" htmlFor="profile-headline">
                     Headline
                   </label>
                   <span className="api-name">headline</span>
                 </div>
-                <input
-                  id="profile-headline"
-                  className="admin-input"
-                  value={form.headline}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, headline: e.target.value }))
-                  }
-                />
+                <div className="admin-field-grid-field">
+                  <input
+                    id="profile-headline"
+                    className="admin-input"
+                    value={form.headline}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, headline: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
-              <div>
+              <div className="admin-field-grid-item">
                 <div className="admin-label-pair">
                   <label className="human" htmlFor="profile-subtitle">
                     Subtitle
                   </label>
                   <span className="api-name">subtitle</span>
                 </div>
-                <textarea
-                  id="profile-subtitle"
-                  className="admin-textarea"
-                  value={form.subtitle}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, subtitle: e.target.value }))
-                  }
-                />
+                <div className="admin-field-grid-field">
+                  <textarea
+                    id="profile-subtitle"
+                    className="admin-textarea"
+                    style={{ height: 58 }}
+                    value={form.subtitle}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, subtitle: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -245,8 +252,6 @@ export default function ProfileEditor({
           deleting={deleting}
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleDelete}
-          title="Delete this record?"
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
         />
       )}
     </>

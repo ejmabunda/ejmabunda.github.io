@@ -17,8 +17,8 @@ export default function DeleteConfirmModal({
   deleting,
   onCancel,
   onConfirm,
-  title = "Delete profile?",
-  body = "This removes your public profile information from the site. This can't be undone.",
+  title = "Delete this record?",
+  body = "The record and its skill links are removed. This runs immediately against the live API and can't be undone.",
   confirmLabel = "Delete",
   confirmingLabel = "Deleting…",
 }: DeleteConfirmModalProps) {

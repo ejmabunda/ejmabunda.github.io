@@ -44,17 +44,20 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         <div className="admin-login-brand">
           <span className="admin-wordmark">
             <span className="admin-wordmark-mark" aria-hidden="true">
-              e
+              M
             </span>
-            ejmabunda_
+            <span className="admin-wordmark-text">
+              <span className="admin-wordmark-name">ejmabunda.dev</span>
+              <span className="admin-wordmark-sub">admin console</span>
+            </span>
           </span>
           <div>
             <h1 className="admin-login-statement">
               The content behind the site.
             </h1>
             <p className="admin-login-support">
-              Sign in to manage the profile, skills, experience, projects and
-              credentials that power the public site.
+              Profile, skills, experience, projects and credentials — edited
+              here, live on the public site the moment the API answers.
             </p>
           </div>
           <div className="admin-login-footer">
@@ -85,30 +88,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               <div
                 className={`admin-input-wrap${isError ? " is-error" : ""}`}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  className="admin-input-icon"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="3"
-                    y="7"
-                    width="10"
-                    height="7"
-                    rx="1.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                  />
-                  <path
-                    d="M5 7V5a3 3 0 0 1 6 0v2"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                  />
-                </svg>
                 <input
                   id="admin-password"
                   type={showPassword ? "text" : "password"}
@@ -117,6 +96,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
                   placeholder="••••••••"
                   className="admin-input-bare"
                   autoComplete="current-password"
+                  autoFocus
                   readOnly={isLoading}
                   required
                 />
@@ -154,8 +134,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             </form>
 
             <p className="admin-login-note">
-              Sessions don&rsquo;t survive a redeploy of the API — sign in
-              again if you land back here unexpectedly.
+              A backend redeploy regenerates the signing key, so an existing
+              session lands back here once. Signing in again is the whole
+              recovery.
             </p>
 
             <div className="admin-login-theme">

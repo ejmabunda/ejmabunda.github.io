@@ -47,7 +47,7 @@ export default function ProjectsManager({
   const [editForm, setEditForm] = useState(BLANK_FORM);
   const [saving, setSaving] = useState(false);
 
-  const [addOpen, setAddOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState(BLANK_FORM);
   const [adding, setAdding] = useState(false);
 
@@ -85,12 +85,19 @@ export default function ProjectsManager({
   );
 
   function startEdit(project: Project) {
+    setIsAdding(false);
     setEditingId(project.id);
     setEditForm({
       name: project.name,
       url: project.url,
       skillIds: project.skills.map((s) => s.id),
     });
+  }
+
+  function startAdd() {
+    setEditingId(null);
+    setAddForm(BLANK_FORM);
+    setIsAdding(true);
   }
 
   async function saveEdit(id: string) {
@@ -129,7 +136,7 @@ export default function ProjectsManager({
       setProjects(next);
       onCountChange(next.length);
       setAddForm(BLANK_FORM);
-      setAddOpen(false);
+      setIsAdding(false);
     } catch (err) {
       if (err instanceof UnauthorizedError) onLoggedOut();
     } finally {
@@ -162,6 +169,11 @@ export default function ProjectsManager({
         endpoint="/api/Project"
         waking={waking}
         onLoggedOut={onLoggedOut}
+        primaryAction={
+          <button type="button" className="admin-btn-primary" onClick={startAdd}>
+            + Add project
+          </button>
+        }
       />
       <div className="admin-body">
         {loadStatus === "error" && (
@@ -187,7 +199,67 @@ export default function ProjectsManager({
                 <span>row actions</span>
               </div>
 
-              {projects.length === 0 && (
+              {isAdding && (
+                <div
+                  className="admin-row"
+                  data-cols="projects"
+                  data-editing="true"
+                  style={{ padding: "12px 20px" }}
+                >
+                  <input
+                    className="admin-input"
+                    placeholder="Project name"
+                    aria-label="New project name"
+                    value={addForm.name}
+                    onChange={(e) =>
+                      setAddForm((f) => ({ ...f, name: e.target.value }))
+                    }
+                    autoFocus
+                  />
+                  <input
+                    className="admin-input admin-mono"
+                    placeholder="https://…"
+                    aria-label="New project url"
+                    value={addForm.url}
+                    onChange={(e) =>
+                      setAddForm((f) => ({ ...f, url: e.target.value }))
+                    }
+                  />
+                  <span />
+                  <span className="r-actions">
+                    <button
+                      type="button"
+                      className="admin-btn-mini"
+                      data-solid="true"
+                      disabled={
+                        adding || !addForm.name.trim() || !addForm.url.trim()
+                      }
+                      onClick={handleAdd}
+                    >
+                      {adding ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn-mini"
+                      onClick={() => setIsAdding(false)}
+                      disabled={adding}
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                  <div className="admin-row-expand">
+                    <SkillPicker
+                      groups={skillGroups}
+                      pickedSkillIds={addForm.skillIds}
+                      onChange={(ids) =>
+                        setAddForm((f) => ({ ...f, skillIds: ids }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {projects.length === 0 && !isAdding && (
                 <div className="admin-empty-row" style={{ padding: "16px 20px" }}>
                   <span>No records yet.</span>
                 </div>
@@ -238,7 +310,7 @@ export default function ProjectsManager({
                           Cancel
                         </button>
                       </span>
-                      <div className="admin-row-stack">
+                      <div className="admin-row-expand">
                         <SkillPicker
                           groups={skillGroups}
                           pickedSkillIds={editForm.skillIds}
@@ -296,67 +368,10 @@ export default function ProjectsManager({
         )}
 
         {loadStatus === "ready" && (
-          <div className="admin-add-row">
-            {addOpen ? (
-              <div className="admin-card">
-                <div className="admin-card-body">
-                  <div className="admin-add-row-fields">
-                    <input
-                      className="admin-input"
-                      placeholder="Project name"
-                      value={addForm.name}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, name: e.target.value }))
-                      }
-                      autoFocus
-                    />
-                    <input
-                      className="admin-input admin-mono"
-                      placeholder="https://…"
-                      value={addForm.url}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, url: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <SkillPicker
-                    groups={skillGroups}
-                    pickedSkillIds={addForm.skillIds}
-                    onChange={(ids) =>
-                      setAddForm((f) => ({ ...f, skillIds: ids }))
-                    }
-                  />
-                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                    <button
-                      type="button"
-                      className="admin-btn-primary"
-                      disabled={
-                        adding || !addForm.name.trim() || !addForm.url.trim()
-                      }
-                      onClick={handleAdd}
-                    >
-                      {adding ? "Adding…" : "Add project"}
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-btn-secondary"
-                      onClick={() => setAddOpen(false)}
-                      disabled={adding}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="admin-btn-secondary"
-                onClick={() => setAddOpen(true)}
-              >
-                + Add project
-              </button>
-            )}
+          <div className="admin-list-add">
+            <button type="button" className="admin-btn-soft" onClick={startAdd}>
+              + Add project
+            </button>
           </div>
         )}
       </div>
@@ -366,8 +381,6 @@ export default function ProjectsManager({
           deleting={deleting}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
-          title={`Delete "${deleteTarget.name}"?`}
-          body="The record and its skill links are removed. This runs immediately against the live API and can't be undone."
         />
       )}
     </>
