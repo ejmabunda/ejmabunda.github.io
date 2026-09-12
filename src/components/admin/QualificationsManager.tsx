@@ -221,7 +221,7 @@ export default function QualificationsManager({
     setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <>
+    <div className="admin-manager-root" data-mobile-view={mobileView}>
       <AdminHeader
         title="Qualifications"
         endpoint="/api/Qualification"
@@ -463,6 +463,6 @@ export default function QualificationsManager({
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 }

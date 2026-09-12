@@ -227,7 +227,7 @@ export default function ExperiencesManager({
     setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <>
+    <div className="admin-manager-root" data-mobile-view={mobileView}>
       <AdminHeader
         title="Experience"
         endpoint="/api/Experience"
@@ -463,6 +463,6 @@ export default function ExperiencesManager({
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 }

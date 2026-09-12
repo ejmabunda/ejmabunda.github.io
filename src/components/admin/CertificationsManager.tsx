@@ -211,7 +211,7 @@ export default function CertificationsManager({
     setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <>
+    <div className="admin-manager-root" data-mobile-view={mobileView}>
       <AdminHeader
         title="Certifications"
         endpoint="/api/Certification"
@@ -424,6 +424,6 @@ export default function CertificationsManager({
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 }
