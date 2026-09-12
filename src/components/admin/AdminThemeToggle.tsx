@@ -3,31 +3,61 @@
 import { useEffect, useState } from "react";
 import {
   applyAdminTheme,
-  persistAdminTheme,
-  resolveInitialAdminTheme,
-  type AdminTheme,
+  resolveAppliedAdminTheme,
+  resolveStoredAdminThemePreference,
+  setAdminThemePreference,
+  subscribeToAdminThemePreference,
+  type AdminThemePreference,
 } from "@/lib/adminTheme";
 
+const NEXT: Record<AdminThemePreference, AdminThemePreference> = {
+  system: "light",
+  light: "dark",
+  dark: "system",
+};
+
+const LABEL: Record<AdminThemePreference, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+};
+
 export default function AdminThemeToggle() {
-  const [theme, setTheme] = useState<AdminTheme>("light");
+  const [preference, setPreference] =
+    useState<AdminThemePreference>("system");
 
   // Reconcile with whatever the beforeInteractive init script actually
-  // applied, since server-rendered markup can't know it.
+  // applied, since server-rendered markup can't know it — and apply it
+  // ourselves too, in case that script didn't run for some reason.
   useEffect(() => {
-    setTheme(resolveInitialAdminTheme());
+    const resolved = resolveStoredAdminThemePreference();
+    setPreference(resolved);
+    applyAdminTheme(resolveAppliedAdminTheme(resolved));
   }, []);
 
+  // Stay in sync with every other mounted toggle — the desktop header and
+  // the mobile "more" panel each render their own instance of this.
+  useEffect(() => subscribeToAdminThemePreference(setPreference), []);
+
+  // While "system" is selected, follow live OS theme changes instead of
+  // only picking them up on next page load.
+  useEffect(() => {
+    if (preference !== "system") return;
+    if (typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => setAdminThemePreference("system");
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [preference]);
+
   function handleClick() {
-    const next: AdminTheme = theme === "dark" ? "light" : "dark";
-    applyAdminTheme(next);
-    persistAdminTheme(next);
-    setTheme(next);
+    setAdminThemePreference(NEXT[preference]);
   }
 
-  const ariaLabel =
-    theme === "dark"
-      ? "Dark theme active. Switch to light theme."
-      : "Light theme active. Switch to dark theme.";
+  const appliedTheme = resolveAppliedAdminTheme(preference);
+  const ariaLabel = `Theme: ${LABEL[preference]}${
+    preference === "system" ? ` (${appliedTheme})` : ""
+  }. Click to switch to ${LABEL[NEXT[preference]]}.`;
 
   return (
     <button
@@ -37,7 +67,7 @@ export default function AdminThemeToggle() {
       onClick={handleClick}
     >
       <span className="admin-theme-toggle-dot" aria-hidden="true" />
-      {theme === "dark" ? "Dark" : "Light"}
+      {LABEL[preference]}
     </button>
   );
 }
