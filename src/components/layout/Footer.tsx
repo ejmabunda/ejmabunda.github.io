@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { site } from "@/content/site";
 
 export default function Footer() {
@@ -5,7 +6,15 @@ export default function Footer() {
 
   return (
     <footer className="wrap flex flex-wrap justify-between gap-2 border-t border-divider pt-[28px] pb-[40px] text-[13px] opacity-70">
-      <div>© {year} Matimu Mabunda</div>
+      <div>
+        © {year} Matimu Mabunda ·{" "}
+        <Link
+          href="/admin"
+          className="opacity-60 transition-opacity hover:opacity-100"
+        >
+          Admin
+        </Link>
+      </div>
       <div>
         {site.location} · {site.email}
       </div>
