@@ -135,7 +135,7 @@ export default function ProfileEditor({
           </button>
         }
       />
-      <div className="admin-body" style={{ maxWidth: 900 }}>
+      <div className="admin-body admin-body-padded" style={{ maxWidth: 900 }}>
         <div className="admin-context-line">
           <span>singleton · id 1</span>
           <span>GET anonymous · PUT authorized</span>

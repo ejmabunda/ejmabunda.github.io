@@ -39,7 +39,7 @@ export default function SkillPicker({
         <span className="admin-label" style={{ margin: 0 }}>
           skillIds
         </span>
-        <span className="admin-skill-picker-count admin-mono">
+        <span className="admin-skill-picker-count">
           {pickedSkillIds.length} linked
         </span>
       </div>
@@ -51,7 +51,7 @@ export default function SkillPicker({
         groups.map((group) => (
           <div key={group.name} className="admin-skill-picker-group">
             <span className="admin-skill-picker-group-label">
-              {group.label.toUpperCase()}
+              {group.label}
             </span>
             <div className="admin-skill-picker-items">
               {group.items.map((skill) => (
