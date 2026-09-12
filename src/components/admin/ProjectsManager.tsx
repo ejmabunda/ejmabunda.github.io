@@ -186,26 +186,20 @@ export default function ProjectsManager({
         )}
 
         {loadStatus === "ready" && (
-          <div className="admin-card">
-            <div className="admin-card-body" style={{ padding: 0 }}>
-              <div
-                className="admin-table-head"
-                data-cols="projects"
-                style={{ padding: "10px 20px" }}
-              >
-                <span>name</span>
-                <span>url</span>
-                <span>skills</span>
-                <span>row actions</span>
-              </div>
+          <>
+            <div className="admin-table-head" data-cols="projects">
+              <span>name</span>
+              <span>url</span>
+              <span>skills</span>
+              <span>row actions</span>
+            </div>
 
-              {isAdding && (
-                <div
-                  className="admin-row"
-                  data-cols="projects"
-                  data-editing="true"
-                  style={{ padding: "12px 20px" }}
-                >
+            {isAdding && (
+              <div
+                className="admin-row"
+                data-cols="projects"
+                data-editing="true"
+              >
                   <input
                     className="admin-input"
                     placeholder="Project name"
@@ -259,20 +253,19 @@ export default function ProjectsManager({
                 </div>
               )}
 
-              {projects.length === 0 && !isAdding && (
-                <div className="admin-empty-row" style={{ padding: "16px 20px" }}>
-                  <span>No records yet.</span>
-                </div>
-              )}
+            {projects.length === 0 && !isAdding && (
+              <div className="admin-empty-row">
+                <span>No records yet.</span>
+              </div>
+            )}
 
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="admin-row"
-                  data-cols="projects"
-                  data-editing={editingId === project.id}
-                  style={{ padding: "12px 20px" }}
-                >
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                className="admin-row"
+                data-cols="projects"
+                data-editing={editingId === project.id}
+              >
                   {editingId === project.id ? (
                     <>
                       <input
@@ -363,8 +356,7 @@ export default function ProjectsManager({
                   )}
                 </div>
               ))}
-            </div>
-          </div>
+          </>
         )}
 
         {loadStatus === "ready" && (
