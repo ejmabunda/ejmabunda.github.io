@@ -78,6 +78,7 @@ function renderManager(
       token="tok"
       onTokenRefreshed={vi.fn()}
       onLoggedOut={vi.fn()}
+      waking={false}
       {...overrides}
     />
   );
@@ -90,10 +91,10 @@ function fillNewRole() {
   fireEvent.change(screen.getByLabelText("Employer"), {
     target: { value: "Xiquel" },
   });
-  fireEvent.change(screen.getByLabelText("Start date"), {
+  fireEvent.change(screen.getByLabelText("startDate"), {
     target: { value: "2026-02-02" },
   });
-  fireEvent.change(screen.getByLabelText(/Description/), {
+  fireEvent.change(screen.getByLabelText(/description/), {
     target: { value: "  Did things \n\n Shipped stuff " },
   });
 }
@@ -104,26 +105,32 @@ afterEach(() => {
 });
 
 describe("ExperiencesManager", () => {
-  it("loads the timeline and reports the role count", async () => {
+  it("loads the list and reports the role count", async () => {
     getExperiencesFreshMock.mockResolvedValue(roles);
     getSkillsFreshMock.mockResolvedValue(skills);
     const onCountChange = vi.fn();
     renderManager({ onCountChange });
 
-    expect(await screen.findByText("Junior Developer")).toBeInTheDocument();
-    expect(screen.getByText("IT Support Assistant")).toBeInTheDocument();
+    // The list rows are buttons; the auto-selected editor's duplicate title
+    // isn't, so a role query stays unambiguous even once it's pre-loaded.
+    expect(
+      await screen.findByRole("button", { name: /Junior Developer/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /IT Support Assistant/ })
+    ).toBeInTheDocument();
     expect(onCountChange).toHaveBeenLastCalledWith(2);
-    expect(screen.getByText("TIMELINE · 2")).toBeInTheDocument();
   });
 
-  it("shows an error state when loading fails", async () => {
+  it("shows an error state with a retry when loading fails", async () => {
     getExperiencesFreshMock.mockRejectedValue(new Error("network"));
     getSkillsFreshMock.mockResolvedValue(skills);
     renderManager();
 
     expect(
-      await screen.findByText(/something went wrong loading your experience/i)
+      await screen.findByText(/this isn.t available right now/i)
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 
   it("creates a role, joining bullets and sending the picked skill ids", async () => {
@@ -136,7 +143,7 @@ describe("ExperiencesManager", () => {
     fillNewRole();
     fireEvent.click(screen.getByRole("button", { name: "C#" }));
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Add experience" })[0]
+      screen.getAllByRole("button", { name: "Save changes" })[0]
     );
 
     await waitFor(() =>
@@ -160,18 +167,17 @@ describe("ExperiencesManager", () => {
     });
     renderManager();
 
-    await screen.findByText("Junior Developer");
     fireEvent.click(
-      screen.getByText("Junior Developer").closest("button")!
+      await screen.findByRole("button", { name: /Junior Developer/ })
     );
 
-    expect(screen.getByText("Edit role")).toBeInTheDocument();
+    expect(screen.getByText("EDITING")).toBeInTheDocument();
     expect(screen.getByLabelText("Job title")).toHaveValue("Junior Developer");
 
     fireEvent.change(screen.getByLabelText("Job title"), {
       target: { value: "Mid Developer" },
     });
-    fireEvent.click(screen.getAllByRole("button", { name: "Save role" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Save changes" })[0]);
 
     await waitFor(() =>
       expect(updateExperienceMock).toHaveBeenCalledWith(
@@ -188,8 +194,9 @@ describe("ExperiencesManager", () => {
     deleteExperienceMock.mockResolvedValue(undefined);
     renderManager();
 
-    await screen.findByText("Junior Developer");
-    fireEvent.click(screen.getByText("Junior Developer").closest("button")!);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Junior Developer/ })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
     const dialog = screen.getByRole("dialog");
@@ -216,7 +223,7 @@ describe("ExperiencesManager", () => {
     await screen.findByText("Add a role");
     fillNewRole();
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Add experience" })[0]
+      screen.getAllByRole("button", { name: "Save changes" })[0]
     );
 
     await waitFor(() => expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok"));
@@ -224,6 +231,27 @@ describe("ExperiencesManager", () => {
       2,
       "new-tok",
       expect.objectContaining({ jobTitle: "Software Developer" })
+    );
+  });
+
+  it("sends endDate: null when Ongoing is checked", async () => {
+    getExperiencesFreshMock.mockResolvedValue([]);
+    getSkillsFreshMock.mockResolvedValue(skills);
+    createExperienceMock.mockResolvedValue(roles[0]);
+    renderManager();
+
+    await screen.findByText("Add a role");
+    fillNewRole();
+    fireEvent.click(screen.getByLabelText(/Ongoing/));
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Save changes" })[0]
+    );
+
+    await waitFor(() =>
+      expect(createExperienceMock).toHaveBeenCalledWith(
+        "tok",
+        expect.objectContaining({ endDate: null })
+      )
     );
   });
 });

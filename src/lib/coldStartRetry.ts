@@ -13,6 +13,8 @@
  * so a first visit to a sleeping backend looked like a hard failure.
  */
 
+import { trackApiRequest } from "./apiWake";
+
 /**
  * Per-attempt cap. Long enough for one held connection to ride out a typical
  * cold start; short enough that a wedged request doesn't burn the whole budget
@@ -52,20 +54,30 @@ export async function fetchWithTimeout(
  * Runs `attempt` repeatedly until it resolves or `COLD_START_BUDGET_MS` has
  * elapsed since the first try, pausing `RETRY_BACKOFF_MS` between tries.
  * Re-throws the last error once the budget is spent.
+ *
+ * Reports itself to the shared `apiWake` signal for the whole run — every
+ * caller of this function (public reads and the admin console's own
+ * `getXFresh()` reads alike) drives the same "is the backend waking up?"
+ * indicator, so the admin console's wake banner doesn't need its own tracking.
  */
 export async function retryThroughColdStart<T>(
   attempt: () => Promise<T>
 ): Promise<T> {
-  const deadline = Date.now() + COLD_START_BUDGET_MS;
-  let lastError: unknown;
-  for (;;) {
-    try {
-      return await attempt();
-    } catch (err) {
-      lastError = err;
-      if (Date.now() + RETRY_BACKOFF_MS >= deadline) break;
-      await delay(RETRY_BACKOFF_MS);
+  const settle = trackApiRequest();
+  try {
+    const deadline = Date.now() + COLD_START_BUDGET_MS;
+    let lastError: unknown;
+    for (;;) {
+      try {
+        return await attempt();
+      } catch (err) {
+        lastError = err;
+        if (Date.now() + RETRY_BACKOFF_MS >= deadline) break;
+        await delay(RETRY_BACKOFF_MS);
+      }
     }
+    throw lastError;
+  } finally {
+    settle();
   }
-  throw lastError;
 }
