@@ -219,13 +219,16 @@ export default function SkillsManager({
       />
       <div className="admin-body">
         <div className="admin-toolbar">
-          <input
-            className="admin-input admin-toolbar-search"
-            placeholder="Search skills…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search skills"
-          />
+          <div className="admin-search-wrap">
+            <span className="admin-search-icon" aria-hidden="true" />
+            <input
+              className="admin-input admin-toolbar-search"
+              placeholder="Search skills…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search skills"
+            />
+          </div>
           <select
             className="admin-select"
             style={{ maxWidth: 220 }}
@@ -340,8 +343,10 @@ export default function SkillsManager({
               {groups.map((group) => (
                 <div key={group.name} className="admin-group">
                   <div className="admin-group-head" style={{ margin: "6px 20px 0" }}>
-                    {CATEGORY_LABEL[group.name]} · enum{" "}
-                    {SKILL_CATEGORY[group.name]}
+                    {CATEGORY_LABEL[group.name]}{" "}
+                    <span className="admin-group-head-enum">
+                      enum {SKILL_CATEGORY[group.name]}
+                    </span>
                   </div>
                   {group.items.map((skill) => (
                     <div
@@ -377,7 +382,7 @@ export default function SkillsManager({
                             ))}
                           </select>
                           <span className="r-meta admin-mono">
-                            {linkedCounts[skill.id] ?? 0} linked
+                            {linkedCounts[skill.id] ?? 0}
                           </span>
                           <span className="r-actions">
                             <button
@@ -406,7 +411,7 @@ export default function SkillsManager({
                             {CATEGORY_LABEL[skill.skillCategory]}
                           </span>
                           <span className="r-meta admin-mono">
-                            {linkedCounts[skill.id] ?? 0} linked
+                            {linkedCounts[skill.id] ?? 0}
                           </span>
                           <span className="r-actions">
                             <button
