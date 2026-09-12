@@ -219,16 +219,18 @@ export default function SkillsManager({
       />
       <div className="admin-body">
         <div className="admin-toolbar">
-          <input
-            className="admin-input admin-toolbar-search"
-            placeholder="Search skills…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search skills"
-          />
+          <div className="admin-search-wrap">
+            <span className="admin-search-icon" aria-hidden="true" />
+            <input
+              className="admin-input admin-toolbar-search"
+              placeholder="Search skills…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search skills"
+            />
+          </div>
           <select
-            className="admin-select"
-            style={{ maxWidth: 220 }}
+            className="admin-select admin-category-select"
             value={categoryFilter}
             onChange={(e) =>
               setCategoryFilter(e.target.value as SkillCategoryName | "all")
@@ -262,26 +264,20 @@ export default function SkillsManager({
         )}
 
         {loadStatus === "ready" && (
-          <div className="admin-card">
-            <div className="admin-card-body" style={{ padding: 0 }}>
-              <div
-                className="admin-table-head"
-                data-cols="skills"
-                style={{ padding: "10px 20px" }}
-              >
-                <span>name</span>
-                <span>skillCategory</span>
-                <span>linked</span>
-                <span>row actions</span>
-              </div>
+          <>
+            <div className="admin-table-head" data-cols="skills">
+              <span>name</span>
+              <span>skillCategory</span>
+              <span>linked</span>
+              <span>row actions</span>
+            </div>
 
-              {isAdding && (
-                <div
-                  className="admin-row"
-                  data-cols="skills"
-                  data-editing="true"
-                  style={{ padding: "10px 20px" }}
-                >
+            {isAdding && (
+              <div
+                className="admin-row"
+                data-cols="skills"
+                data-editing="true"
+              >
                   <input
                     className="admin-input"
                     aria-label="New skill name"
@@ -327,30 +323,31 @@ export default function SkillsManager({
                 </div>
               )}
 
-              {groups.length === 0 && !isAdding && (
-                <div className="admin-empty-row" style={{ padding: "16px 20px" }}>
-                  <span>
-                    {skills.length === 0
-                      ? "No records yet."
-                      : "No skills match that search."}
+            {groups.length === 0 && !isAdding && (
+              <div className="admin-empty-row">
+                <span>
+                  {skills.length === 0
+                    ? "No records yet."
+                    : "No skills match that search."}
+                </span>
+              </div>
+            )}
+
+            {groups.map((group) => (
+              <div key={group.name} className="admin-group">
+                <div className="admin-group-head">
+                  {CATEGORY_LABEL[group.name]}{" "}
+                  <span className="admin-group-head-enum">
+                    enum {SKILL_CATEGORY[group.name]}
                   </span>
                 </div>
-              )}
-
-              {groups.map((group) => (
-                <div key={group.name} className="admin-group">
-                  <div className="admin-group-head" style={{ margin: "6px 20px 0" }}>
-                    {CATEGORY_LABEL[group.name]} · enum{" "}
-                    {SKILL_CATEGORY[group.name]}
-                  </div>
-                  {group.items.map((skill) => (
-                    <div
-                      key={skill.id}
-                      className="admin-row"
-                      data-cols="skills"
-                      data-editing={editingId === skill.id}
-                      style={{ padding: "10px 20px" }}
-                    >
+                {group.items.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="admin-row"
+                    data-cols="skills"
+                    data-editing={editingId === skill.id}
+                  >
                       {editingId === skill.id ? (
                         <>
                           <input
@@ -377,7 +374,7 @@ export default function SkillsManager({
                             ))}
                           </select>
                           <span className="r-meta admin-mono">
-                            {linkedCounts[skill.id] ?? 0} linked
+                            {linkedCounts[skill.id] ?? 0}
                           </span>
                           <span className="r-actions">
                             <button
@@ -406,7 +403,7 @@ export default function SkillsManager({
                             {CATEGORY_LABEL[skill.skillCategory]}
                           </span>
                           <span className="r-meta admin-mono">
-                            {linkedCounts[skill.id] ?? 0} linked
+                            {linkedCounts[skill.id] ?? 0}
                           </span>
                           <span className="r-actions">
                             <button
@@ -438,8 +435,7 @@ export default function SkillsManager({
                   ))}
                 </div>
               ))}
-            </div>
-          </div>
+          </>
         )}
       </div>
 

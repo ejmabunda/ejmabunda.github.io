@@ -135,7 +135,7 @@ export default function ProfileEditor({
           </button>
         }
       />
-      <div className="admin-body" style={{ maxWidth: 900 }}>
+      <div className="admin-body admin-body-padded" style={{ maxWidth: 900 }}>
         <div className="admin-context-line">
           <span>singleton · id 1</span>
           <span>GET anonymous · PUT authorized</span>
@@ -205,7 +205,7 @@ export default function ProfileEditor({
                   <textarea
                     id="profile-subtitle"
                     className="admin-textarea"
-                    style={{ height: 58 }}
+                    style={{ height: 116 }}
                     value={form.subtitle}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, subtitle: e.target.value }))

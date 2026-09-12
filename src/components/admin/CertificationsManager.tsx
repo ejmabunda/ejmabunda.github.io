@@ -211,7 +211,7 @@ export default function CertificationsManager({
     setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <>
+    <div className="admin-manager-root" data-mobile-view={mobileView}>
       <AdminHeader
         title="Certifications"
         endpoint="/api/Certification"
@@ -227,7 +227,7 @@ export default function CertificationsManager({
           </button>
         }
       />
-      <div className="admin-body">
+      <div className="admin-body admin-body-split">
         {loadStatus === "error" && (
           <div className="admin-fetch-error">
             <span>This isn&rsquo;t available right now.</span>
@@ -424,6 +424,6 @@ export default function CertificationsManager({
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 }

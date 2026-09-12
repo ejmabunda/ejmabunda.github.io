@@ -642,6 +642,30 @@
     font-family: var(--font-admin-sans), "Helvetica Neue", Helvetica,
       -apple-system, Arial, sans-serif;
   }
+
+  /* Themed scrollbar for every internally-scrolling pane — small and
+     minimal, colored from the same theme tokens so it flips with
+     light/dark instead of falling back to the browser chrome default. */
+  .admin-page * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--admin-ink-3) transparent;
+  }
+  .admin-page *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .admin-page *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .admin-page *::-webkit-scrollbar-thumb {
+    background-color: var(--admin-ink-3);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .admin-page *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--admin-ink-2);
+  }
   .admin-mono {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
@@ -667,7 +691,7 @@
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
     font-size: 11px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     color: var(--admin-ink-3);
     margin-bottom: 6px;
   }
@@ -696,14 +720,21 @@
     width: 100%;
     box-sizing: border-box;
     border: 1px solid var(--admin-line);
-    border-radius: 8px;
+    border-radius: 7px;
     background: var(--admin-surface);
     color: var(--admin-ink);
     font-family: inherit;
-    font-size: 14px;
-    padding: 9px 12px;
+    font-size: 13.5px;
+    padding: 9px 11px;
     outline: none;
     transition: border-color 0.14s ease, box-shadow 0.14s ease;
+  }
+  /* the compact inline-row-edit variant (Skills / Projects flat tables) */
+  .admin-row .admin-input,
+  .admin-row .admin-select {
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 7px 9px;
   }
   .admin-input:focus,
   .admin-textarea:focus,
@@ -716,7 +747,7 @@
   }
   .admin-textarea {
     resize: vertical;
-    min-height: 58px;
+    min-height: 116px;
     line-height: 1.5;
   }
   .admin-select {
@@ -750,9 +781,9 @@
     opacity: 0.55;
   }
   .admin-btn-primary {
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 9px 16px;
+    padding: 8px 14px;
     border-radius: 8px;
     border: none;
     background: var(--admin-accent);
@@ -763,12 +794,13 @@
     opacity: 0.92;
   }
   .admin-btn-secondary {
-    font-size: 13px;
-    padding: 8px 14px;
-    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 7px;
     border: 1px solid var(--admin-line);
     background: var(--admin-surface);
-    color: var(--admin-ink);
+    color: var(--admin-ink-2);
   }
   .admin-btn-secondary:hover:not(:disabled) {
     border-color: var(--admin-ink-3);
@@ -776,8 +808,8 @@
   .admin-btn-danger {
     font-size: 13px;
     font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 8px;
+    padding: 9px 14px;
+    border-radius: 7px;
     border: none;
     background: var(--admin-danger);
     color: var(--admin-danger-ink);
@@ -796,12 +828,13 @@
   .admin-btn-text-danger:hover:not(:disabled) {
     background: color-mix(in srgb, var(--admin-danger) 8%, transparent);
   }
-  /* small mono outline button — row-level Edit / Cancel / Save */
+  /* row-level Edit / Delete (bare text) and Save / Cancel (bordered mini
+     buttons) inside the Skills / Projects flat tables */
   .admin-btn-mini {
-    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
-      monospace;
-    font-size: 11px;
-    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 6px 11px;
     border-radius: 6px;
     border: 1px solid var(--admin-line);
     background: transparent;
@@ -811,18 +844,28 @@
     color: var(--admin-ink);
     border-color: var(--admin-ink-3);
   }
-  .admin-btn-mini[data-tone="accent"] {
-    color: var(--admin-accent);
-    border-color: transparent;
-  }
-  .admin-btn-mini[data-tone="danger"] {
-    color: var(--admin-ink-2);
-    border-color: transparent;
-  }
   .admin-btn-mini[data-solid="true"] {
+    font-weight: 600;
     background: var(--admin-accent);
     color: var(--admin-accent-ink);
     border-color: transparent;
+  }
+  /* Edit / Delete in a read-only row are plain text, no button chrome */
+  .admin-btn-mini[data-tone="accent"],
+  .admin-btn-mini[data-tone="danger"] {
+    padding: 0;
+    border: none;
+    background: none;
+  }
+  .admin-btn-mini[data-tone="accent"] {
+    color: var(--admin-accent);
+  }
+  .admin-btn-mini[data-tone="danger"] {
+    color: var(--admin-ink-2);
+  }
+  .admin-btn-mini[data-tone="accent"]:hover:not(:disabled),
+  .admin-btn-mini[data-tone="danger"]:hover:not(:disabled) {
+    border: none;
   }
 
   .admin-error-banner {
@@ -873,28 +916,32 @@
   }
   .admin-modal {
     background: var(--admin-surface);
+    border: 1px solid var(--admin-line);
     border-radius: 13px;
     padding: 22px;
     max-width: 400px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     box-shadow: 0 24px 60px rgba(10, 10, 14, 0.35);
   }
   .admin-h2 {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 8px;
+    margin: 0;
   }
   .admin-subtext {
-    font-size: 13px;
+    font-size: 13.5px;
     color: var(--admin-ink-2);
-    line-height: 1.5;
+    line-height: 1.55;
     margin: 0;
   }
   .admin-modal-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: flex-end;
-    margin-top: 20px;
+    padding-top: 2px;
   }
 
   /* ---- login ---- */
@@ -1134,6 +1181,48 @@
     color: var(--admin-ink-2);
     padding: 6px 4px;
   }
+  .admin-header-more-theme {
+    display: flex;
+  }
+  .admin-header-more-theme .admin-theme-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-header-more-link {
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 4px;
+    color: var(--admin-ink);
+    text-decoration: none;
+  }
+  .admin-header-more-link:hover {
+    color: var(--admin-accent);
+  }
+
+  /* Theme toggle + "View site" live in the header on desktop, but there's
+     no room for them next to the title and primary action on a phone —
+     they move into the "more" panel below 900px instead. */
+  .admin-header-desktop-actions {
+    display: none;
+  }
+  /* The screen's primary action ("+ Add skill", "Save changes", …) becomes
+     a full-width bar fixed to the bottom of the viewport on mobile, per
+     the handoff's mobile layout, instead of competing for header space. */
+  .admin-header-primary {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: var(--admin-surface);
+    border-top: 1px solid var(--admin-line);
+  }
+  .admin-header-primary > * {
+    width: 100%;
+    justify-content: center;
+  }
 
   /* mobile pill tab row (replaces the rail below 900px) */
   .admin-tabrow {
@@ -1168,6 +1257,19 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
+    background: var(--admin-surface);
+  }
+  /* Split-pane managers wrap their header + body in this (rather than a
+     bare fragment) so the mobile pane state is available to CSS as a
+     data attribute — needed to hide the header's fixed mobile action bar
+     while the record editor's own sticky footer is showing instead. It
+     stands in for .admin-main's own flex behavior for its children. */
+  .admin-manager-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
   }
 
   .admin-header {
@@ -1186,17 +1288,18 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
     min-width: 0;
   }
   .admin-page-title {
-    font-size: 17px;
+    font-size: 19px;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
   .admin-endpoint {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
-    font-size: 11px;
+    font-size: 12.5px;
     color: var(--admin-ink-3);
   }
   .admin-header-actions {
@@ -1207,29 +1310,43 @@
   }
   .admin-view-site {
     font-size: 12.5px;
-    color: var(--admin-ink-2);
+    font-weight: 500;
+    padding: 7px 12px;
+    border: 1px solid var(--admin-line);
+    border-radius: 7px;
+    color: var(--admin-ink);
     text-decoration: none;
     white-space: nowrap;
   }
   .admin-view-site:hover {
-    color: var(--admin-ink);
+    border-color: var(--admin-ink-3);
   }
 
   .admin-theme-toggle {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     border: 1px solid var(--admin-line);
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
     background: var(--admin-surface);
     color: var(--admin-ink-2);
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     flex: none;
+    white-space: nowrap;
   }
   .admin-theme-toggle:hover {
     color: var(--admin-ink);
+  }
+  .admin-theme-toggle-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--admin-ink);
+    flex: none;
   }
 
   .admin-wake-banner {
@@ -1286,7 +1403,32 @@
   .admin-body {
     flex: 1;
     min-height: 0;
-    padding: 18px 16px 32px;
+    /* room for the fixed mobile primary-action bar so it doesn't cover
+       the last row/field — reset once that bar goes back to sitting
+       inline in the header at the 900px breakpoint. */
+    padding-bottom: 76px;
+  }
+  /* Profile is the one screen whose content isn't already flush against
+     22px-gutter sections of its own — it gets a uniform page padding. */
+  .admin-body-padded {
+    padding: 16px 16px 76px;
+  }
+  /* The split-pane screens (Experience / Qualifications / Certifications)
+     scroll their list and editor independently rather than as one long
+     page once there's room for them side by side (see the 1180px block
+     below, which is also where this stops self-scrolling and hands that
+     off to .admin-split-list / .admin-split-editor). Below that they
+     stack and this stays a normal scrolling block, same as any other
+     screen. */
+  .admin-body-split {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 76px;
+  }
+  /* ...except while the editor pane (with its own sticky footer) is
+     showing on mobile — nothing else needs the extra room then. */
+  [data-mobile-view="editor"] .admin-body-split {
+    padding-bottom: 0;
   }
 
   /* ---- generic page chrome shared by every screen ---- */
@@ -1306,16 +1448,51 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--admin-line);
+  }
+  .admin-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 1 240px;
+    border: 1px solid var(--admin-line);
+    border-radius: 7px;
+    padding: 7px 10px;
+    background: var(--admin-surface);
+  }
+  .admin-search-icon {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid var(--admin-ink-3);
+    flex: none;
   }
   .admin-toolbar-search {
-    flex: 1 1 200px;
-    max-width: 240px;
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    border: none;
+    padding: 0;
+    font-size: 12.5px;
+    background: none;
+  }
+  .admin-toolbar-search:focus {
+    box-shadow: none;
+  }
+  .admin-category-select {
+    width: auto;
+    font-size: 12.5px;
+    color: var(--admin-ink-2);
+    border-radius: 7px;
+    padding: 7px 28px 7px 10px;
+    background-position: right 10px center;
   }
   .admin-toolbar-count {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--admin-ink-3);
     margin-left: auto;
     white-space: nowrap;
@@ -1426,6 +1603,7 @@
       monospace;
     font-size: 10px;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--admin-ink-3);
     border-bottom: 1px solid var(--admin-line);
   }
@@ -1436,10 +1614,14 @@
   .admin-table-head > span:last-child {
     display: block;
   }
+  .admin-table-head > span:last-child {
+    justify-self: end;
+  }
   .admin-row {
     grid-template-columns: minmax(0, 1fr) auto;
     padding: 12px 4px;
     border-bottom: 1px solid var(--admin-line);
+    background: var(--admin-surface);
   }
   .admin-row:last-child {
     border-bottom: none;
@@ -1473,7 +1655,7 @@
   }
   .admin-row .r-actions {
     display: flex;
-    gap: 6px;
+    gap: 10px;
     justify-content: flex-end;
   }
   .admin-row-stack {
@@ -1516,11 +1698,15 @@
       monospace;
     font-size: 10px;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--admin-ink-3);
     background: var(--admin-bg);
     padding: 8px 12px;
     margin: 6px -12px 0;
     border-radius: 6px;
+  }
+  .admin-group-head-enum {
+    color: var(--admin-accent);
   }
   .admin-group:first-child .admin-group-head {
     margin-top: 0;
@@ -1531,7 +1717,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 16px 4px;
+    padding: 16px 22px;
     font-size: 13px;
     color: var(--admin-ink-2);
   }
@@ -1539,7 +1725,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 4px;
+    padding: 14px 22px;
     font-size: 13px;
     color: var(--admin-ink-2);
   }
@@ -1547,44 +1733,43 @@
   /* ---- skill picker (Experience / Qualifications / Certifications) ---- */
 
   .admin-skill-picker {
-    margin-top: 6px;
-    padding-top: 16px;
-    border-top: 1px solid var(--admin-line);
+    padding-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
   }
   .admin-skill-picker-head {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 8px;
   }
   .admin-skill-picker-count {
-    font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
-      monospace;
-    font-size: 11px;
-    color: var(--admin-accent);
+    font-size: 11.5px;
+    color: var(--admin-ink-2);
   }
   .admin-skill-picker-group {
-    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
   .admin-skill-picker-group-label {
     display: block;
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
-    font-size: 10px;
-    letter-spacing: 0.07em;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--admin-ink-3);
-    margin-bottom: 8px;
   }
   .admin-skill-picker-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 6px;
   }
   .admin-toggle-pill {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     font-family: inherit;
     font-size: 12px;
     padding: 5px 10px;
@@ -1620,11 +1805,13 @@
   .admin-split {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    flex: 1;
+    min-height: 0;
   }
   .admin-split-list,
   .admin-split-editor {
     min-width: 0;
+    overflow-y: auto;
   }
   .admin-list-toolbar {
     display: flex;
@@ -1692,7 +1879,7 @@
     justify-self: start;
   }
   .admin-list-empty {
-    padding: 18px 12px;
+    padding: 18px 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1701,7 +1888,7 @@
     color: var(--admin-ink-2);
   }
   .admin-list-error {
-    padding: 18px 12px;
+    padding: 18px 22px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1709,7 +1896,7 @@
     color: var(--admin-ink-2);
   }
   .admin-list-add {
-    margin-top: 10px;
+    padding: 14px 22px;
   }
   .admin-btn-soft {
     display: inline-flex;
@@ -1728,13 +1915,11 @@
 
   .admin-editor {
     background: var(--admin-bg);
-    border: 1px solid var(--admin-line);
-    border-radius: 11px;
     display: flex;
     flex-direction: column;
   }
   .admin-editor-head {
-    padding: 14px 18px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--admin-line);
     display: flex;
     align-items: center;
@@ -1758,12 +1943,12 @@
   .admin-editor-eyebrow {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.08em;
     color: var(--admin-ink-3);
   }
   .admin-editor-title {
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 600;
   }
   .admin-editor-endpoint {
@@ -1773,28 +1958,25 @@
     color: var(--admin-ink-3);
   }
   .admin-editor-body {
-    padding: 16px 18px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
   .admin-editor-dates {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 14px;
-  }
-  .admin-editor-dates > div {
-    flex: 1 1 140px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
   .admin-editor-checkbox {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 9px;
+    font-size: 12.5px;
     color: var(--admin-ink-2);
   }
   .admin-editor-footer {
-    padding: 14px 18px;
+    padding: 12px 20px;
     border-top: 1px solid var(--admin-line);
     display: flex;
     align-items: center;
@@ -1821,6 +2003,11 @@
       background: var(--admin-bg);
       padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     }
+    /* The editor pane has its own sticky Save/Cancel/Delete bar — don't
+       also show the header's fixed "+ Add" bar underneath/behind it. */
+    [data-mobile-view="editor"] .admin-header-primary {
+      display: none;
+    }
     .admin-btn-primary,
     .admin-btn-secondary,
     .admin-btn-danger,
@@ -1839,6 +2026,22 @@
     .admin-header-more,
     .admin-tabrow {
       display: none;
+    }
+    .admin-header-desktop-actions {
+      display: contents;
+    }
+    .admin-header-primary {
+      position: static;
+      padding: 0;
+      background: none;
+      border-top: none;
+      z-index: auto;
+    }
+    .admin-header-primary > * {
+      width: auto;
+    }
+    .admin-body-split {
+      padding-bottom: 0;
     }
 
     .admin-shell {
@@ -2046,15 +2249,42 @@
 
     .admin-body {
       overflow-y: auto;
-      padding: 26px 28px 40px;
+      padding-bottom: 0;
+    }
+    .admin-body-padded {
+      padding: 20px 22px;
     }
 
     .admin-field-row {
       flex-wrap: nowrap;
     }
 
+    .admin-header-titles {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 9px;
+    }
+
     .admin-table-head > span {
       display: block;
+    }
+    .admin-table-head {
+      padding: 9px 22px;
+      font-size: 10.5px;
+    }
+    .admin-row {
+      padding: 0 22px;
+      height: 42px;
+    }
+    .admin-row[data-editing="true"] {
+      margin: 0;
+      padding: 8px 22px;
+      border-radius: 0;
+    }
+    .admin-group-head {
+      padding: 9px 22px 5px;
+      margin: 0;
+      border-radius: 0;
     }
 
     /* Skills: name / skillCategory / linked / actions */
@@ -2066,6 +2296,10 @@
     .admin-table-head[data-cols="projects"],
     .admin-row[data-cols="projects"] {
       grid-template-columns: minmax(0, 1fr) 1.4fr 1.5fr 130px;
+    }
+    .admin-row[data-cols="projects"] {
+      height: auto;
+      min-height: 46px;
     }
     /* Show the real columns (these beat the mobile-hidden .r-meta/.r-tags
        rules on specificity, not just source order) ... */
@@ -2082,23 +2316,10 @@
       display: none;
     }
 
-    .admin-split {
-      flex-direction: row;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .admin-split-list {
-      flex: 1 1 520px;
-    }
-    .admin-split-editor {
-      flex: 1 1 404px;
-      max-width: 520px;
-    }
-
     .admin-list-head {
       display: grid;
       gap: 12px;
-      padding: 9px 12px;
+      padding: 9px 22px;
       border-bottom: 1px solid var(--admin-line);
       font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
         monospace;
@@ -2106,6 +2327,9 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--admin-ink-3);
+    }
+    .admin-list-row {
+      padding: 10px 22px;
     }
 
     /* Experience: jobTitle / employer / period / skills */
@@ -2248,6 +2472,34 @@
     .wake-notice-region {
       /* the mobile nav is taller (40px toggle + 20px top/bottom padding) */
       top: calc(84px + var(--spacing-sm));
+    }
+  }
+
+  /* Split-pane list + editor side by side, each scrolling independently.
+     Below this width the two stack (see the 900px block above) and just
+     scroll together as one page — deliberately not "independent" there,
+     since a `flex-wrap` breakpoint combined with `align-items: stretch`
+     and `overflow-y: auto` children doesn't reliably bound their height
+     to the container in Chromium; an explicit `row`/`nowrap` breakpoint
+     sidesteps that instead of fighting it. */
+  @media (min-width: 1180px) {
+    .admin-body-split {
+      overflow: hidden;
+    }
+    .admin-split {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+    .admin-split-list {
+      flex: 1 1 520px;
+      min-height: 0;
+      border-right: 1px solid var(--admin-line);
+    }
+    .admin-split-editor {
+      flex: 1 1 404px;
+      min-height: 0;
+      max-width: 520px;
     }
   }
 }

@@ -227,7 +227,7 @@ export default function ExperiencesManager({
     setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <>
+    <div className="admin-manager-root" data-mobile-view={mobileView}>
       <AdminHeader
         title="Experience"
         endpoint="/api/Experience"
@@ -243,7 +243,7 @@ export default function ExperiencesManager({
           </button>
         }
       />
-      <div className="admin-body">
+      <div className="admin-body admin-body-split">
         {loadStatus === "error" && (
           <div className="admin-fetch-error">
             <span>This isn&rsquo;t available right now.</span>
@@ -401,7 +401,7 @@ export default function ExperiencesManager({
                     <textarea
                       id="exp-description"
                       className="admin-textarea"
-                      style={{ minHeight: 84 }}
+                      style={{ minHeight: 168 }}
                       value={form.description}
                       onChange={(e) => set("description", e.target.value)}
                       placeholder={"Led backend development for…\nBuilt an automated…"}
@@ -463,6 +463,6 @@ export default function ExperiencesManager({
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 }
