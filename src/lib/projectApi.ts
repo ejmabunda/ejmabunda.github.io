@@ -36,6 +36,12 @@ const PROJECT_ENDPOINT = () => `${API_BASE_URL}/api/Project`;
 
 async function fetchProjectsOnce(): Promise<Project[]> {
   const res = await fetchWithTimeout(PROJECT_ENDPOINT());
+  // No controller exists yet, so this 404s today. Once it ships, an empty
+  // list comes back as `[]` (the Experience/Skill convention), not a 404 —
+  // so treat a 404 as "nothing to show" and resolve immediately rather than
+  // burning the whole cold-start retry budget on what is, right now, a
+  // permanently missing route.
+  if (res.status === 404) return [];
   if (!res.ok) throw new Error(`Project API responded with ${res.status}`);
   return (await res.json()) as Project[];
 }

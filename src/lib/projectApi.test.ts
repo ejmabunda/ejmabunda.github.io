@@ -52,6 +52,14 @@ describe("projectApi", () => {
     expect(await getProjects()).toEqual([]);
   });
 
+  it("resolves to an empty array on 404 without retrying (no controller yet)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(404));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await getProjects()).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("retries with backoff after a failure and succeeds", async () => {
     const fetchMock = vi
       .fn()

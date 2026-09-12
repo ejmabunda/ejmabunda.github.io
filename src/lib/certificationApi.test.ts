@@ -63,6 +63,14 @@ describe("certificationApi", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("resolves to an empty array on 404 without retrying (no controller yet)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(404));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await getCertifications()).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("getCertificationsFresh bypasses the cache used by getCertifications", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, sample));
     vi.stubGlobal("fetch", fetchMock);

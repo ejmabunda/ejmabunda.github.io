@@ -88,6 +88,9 @@ const QUALIFICATION_ENDPOINT = () => `${API_BASE_URL}/api/Qualification`;
 
 async function fetchQualificationsOnce(): Promise<Qualification[]> {
   const res = await fetchWithTimeout(QUALIFICATION_ENDPOINT());
+  // No controller exists yet, so this 404s today — see projectApi's
+  // fetchProjectsOnce for why a 404 resolves to [] instead of retrying.
+  if (res.status === 404) return [];
   if (!res.ok) {
     throw new Error(`Qualification API responded with ${res.status}`);
   }
