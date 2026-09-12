@@ -205,7 +205,7 @@ export default function ProfileEditor({
                   <textarea
                     id="profile-subtitle"
                     className="admin-textarea"
-                    style={{ height: 58 }}
+                    style={{ height: 116 }}
                     value={form.subtitle}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, subtitle: e.target.value }))

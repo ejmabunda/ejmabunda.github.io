@@ -642,6 +642,30 @@
     font-family: var(--font-admin-sans), "Helvetica Neue", Helvetica,
       -apple-system, Arial, sans-serif;
   }
+
+  /* Themed scrollbar for every internally-scrolling pane — small and
+     minimal, colored from the same theme tokens so it flips with
+     light/dark instead of falling back to the browser chrome default. */
+  .admin-page * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--admin-ink-3) transparent;
+  }
+  .admin-page *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .admin-page *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .admin-page *::-webkit-scrollbar-thumb {
+    background-color: var(--admin-ink-3);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .admin-page *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--admin-ink-2);
+  }
   .admin-mono {
     font-family: var(--font-admin-mono), ui-monospace, "SF Mono", Menlo,
       monospace;
@@ -723,7 +747,7 @@
   }
   .admin-textarea {
     resize: vertical;
-    min-height: 58px;
+    min-height: 116px;
     line-height: 1.5;
   }
   .admin-select {
@@ -1191,6 +1215,7 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
+    background: var(--admin-surface);
   }
 
   .admin-header {
@@ -1207,8 +1232,8 @@
   }
   .admin-header-titles {
     display: flex;
-    align-items: baseline;
-    gap: 9px;
+    flex-direction: column;
+    gap: 2px;
     flex: 1;
     min-width: 0;
   }
@@ -1329,6 +1354,15 @@
      22px-gutter sections of its own — it gets a uniform page padding. */
   .admin-body-padded {
     padding: 16px;
+  }
+  /* The split-pane screens (Experience / Qualifications / Certifications)
+     scroll their list and editor independently rather than as one long
+     page — the body itself stops scrolling and hands that off to
+     .admin-split-list / .admin-split-editor. */
+  .admin-body-split {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* ---- generic page chrome shared by every screen ---- */
@@ -1521,6 +1555,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     padding: 12px 4px;
     border-bottom: 1px solid var(--admin-line);
+    background: var(--admin-surface);
   }
   .admin-row:last-child {
     border-bottom: none;
@@ -1704,10 +1739,13 @@
   .admin-split {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
   .admin-split-list,
   .admin-split-editor {
     min-width: 0;
+    overflow-y: auto;
   }
   .admin-list-toolbar {
     display: flex;
@@ -2133,6 +2171,12 @@
       flex-wrap: nowrap;
     }
 
+    .admin-header-titles {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 9px;
+    }
+
     .admin-table-head > span {
       display: block;
     }
@@ -2182,20 +2226,6 @@
        off column alignment). */
     .admin-row-stack {
       display: none;
-    }
-
-    .admin-split {
-      flex-direction: row;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .admin-split-list {
-      flex: 1 1 520px;
-      border-right: 1px solid var(--admin-line);
-    }
-    .admin-split-editor {
-      flex: 1 1 404px;
-      max-width: 520px;
     }
 
     .admin-list-head {
@@ -2354,6 +2384,34 @@
     .wake-notice-region {
       /* the mobile nav is taller (40px toggle + 20px top/bottom padding) */
       top: calc(84px + var(--spacing-sm));
+    }
+  }
+
+  /* Split-pane list + editor side by side, each scrolling independently.
+     Below this width the two stack (see the 900px block above) and just
+     scroll together as one page — deliberately not "independent" there,
+     since a `flex-wrap` breakpoint combined with `align-items: stretch`
+     and `overflow-y: auto` children doesn't reliably bound their height
+     to the container in Chromium; an explicit `row`/`nowrap` breakpoint
+     sidesteps that instead of fighting it. */
+  @media (min-width: 1180px) {
+    .admin-body-split {
+      overflow: hidden;
+    }
+    .admin-split {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+    .admin-split-list {
+      flex: 1 1 520px;
+      min-height: 0;
+      border-right: 1px solid var(--admin-line);
+    }
+    .admin-split-editor {
+      flex: 1 1 404px;
+      min-height: 0;
+      max-width: 520px;
     }
   }
 }
