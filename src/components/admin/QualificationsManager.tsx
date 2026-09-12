@@ -2,16 +2,20 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  createExperience,
-  deleteExperience,
-  getExperiencesFresh,
-  updateExperience,
+  createQualification,
+  deleteQualification,
+  getQualificationsFresh,
+  NQF_LEVEL,
+  NQF_LEVEL_LABEL,
+  NQF_LEVEL_NAMES,
   UnauthorizedError,
-  type Experience,
-} from "@/lib/experienceApi";
+  updateQualification,
+  type NqfLevelName,
+  type Qualification,
+} from "@/lib/qualificationApi";
 import {
-  getSkillsFresh,
   CATEGORY_LABEL,
+  getSkillsFresh,
   SKILL_CATEGORY_NAMES,
   type Skill,
 } from "@/lib/skillApi";
@@ -20,7 +24,7 @@ import AdminHeader from "./AdminHeader";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import SkillPicker from "./SkillPicker";
 
-interface ExperiencesManagerProps {
+interface QualificationsManagerProps {
   token: string;
   onTokenRefreshed: (token: string) => void;
   onLoggedOut: () => void;
@@ -32,66 +36,61 @@ type LoadStatus = "loading" | "loaded" | "error";
 type MobileView = "list" | "editor";
 
 const BLANK = {
-  jobTitle: "",
-  employer: "",
+  name: "",
+  institution: "",
   startDate: "",
   endDate: "",
-  description: "",
+  nqfLevel: "Nqf7" as NqfLevelName,
 };
 
-function byStartDateDesc(a: Experience, b: Experience): number {
-  return b.startDate.localeCompare(a.startDate);
+function byNqfLevelDesc(a: Qualification, b: Qualification): number {
+  return NQF_LEVEL[b.nqfLevel] - NQF_LEVEL[a.nqfLevel];
 }
 
-/** `"2026-02-02T00:00:00"` → `"2026-02-02"` for a native date input. */
 function toDateInput(iso: string | null): string {
   return iso ? iso.slice(0, 10) : "";
 }
 
-/** `"2026-02-02T00:00:00"` → `"Mar 2023"` for the list's period column. */
 function monthYear(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-export default function ExperiencesManager({
+export default function QualificationsManager({
   token,
   onTokenRefreshed,
   onLoggedOut,
   waking,
   onCountChange,
-}: ExperiencesManagerProps) {
+}: QualificationsManagerProps) {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [banner, setBanner] = useState<string | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState(BLANK);
-  const [ongoing, setOngoing] = useState(false);
+  const [inProgress, setInProgress] = useState(false);
   const [pickedSkillIds, setPickedSkillIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Experience | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Qualification | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>("list");
 
-  function commit(next: Experience[]): Experience[] {
-    const sorted = [...next].sort(byStartDateDesc);
-    setExperiences(sorted);
+  function commit(next: Qualification[]): Qualification[] {
+    const sorted = [...next].sort(byNqfLevelDesc);
+    setQualifications(sorted);
     onCountChange?.(sorted.length);
     return sorted;
   }
 
   function load() {
     setLoadStatus("loading");
-    Promise.all([getExperiencesFresh(), getSkillsFresh()])
-      .then(([exps, sks]) => {
-        const sorted = commit(exps);
+    Promise.all([getQualificationsFresh(), getSkillsFresh()])
+      .then(([quals, sks]) => {
+        const sorted = commit(quals);
         setSkills(sks);
         setLoadStatus("loaded");
-        // Default the editor to the first record rather than a blank "new"
-        // form, so opening the tab shows something rather than nothing —
-        // but leave the mobile pane on the list, not jump into the editor.
         if (sorted.length > 0) loadIntoEditor(sorted[0]);
       })
       .catch(() => setLoadStatus("error"));
@@ -122,31 +121,29 @@ export default function ExperiencesManager({
     return false;
   }
 
-  /** Loads a role into the editor without switching the mobile pane —
-   *  used both by explicit row selection and by the initial-load default. */
-  function loadIntoEditor(exp: Experience) {
-    setSelectedId(exp.id);
+  function loadIntoEditor(q: Qualification) {
+    setSelectedId(q.id);
     setForm({
-      jobTitle: exp.jobTitle,
-      employer: exp.employer,
-      startDate: toDateInput(exp.startDate),
-      endDate: toDateInput(exp.endDate),
-      description: exp.description,
+      name: q.name,
+      institution: q.institution,
+      startDate: toDateInput(q.startDate),
+      endDate: toDateInput(q.endDate),
+      nqfLevel: q.nqfLevel,
     });
-    setOngoing(exp.endDate === null);
-    setPickedSkillIds(exp.skills.map((s) => s.id));
+    setInProgress(q.endDate === null);
+    setPickedSkillIds(q.skills.map((s) => s.id));
     setBanner(null);
   }
 
-  function selectRole(exp: Experience) {
-    loadIntoEditor(exp);
+  function selectQualification(q: Qualification) {
+    loadIntoEditor(q);
     setMobileView("editor");
   }
 
-  function newRole() {
+  function newQualification() {
     setSelectedId(null);
     setForm(BLANK);
-    setOngoing(false);
+    setInProgress(false);
     setPickedSkillIds([]);
     setBanner(null);
     setMobileView("editor");
@@ -154,10 +151,9 @@ export default function ExperiencesManager({
 
   const isEditing = selectedId !== null;
   const canSubmit =
-    form.jobTitle.trim() !== "" &&
-    form.employer.trim() !== "" &&
+    form.name.trim() !== "" &&
+    form.institution.trim() !== "" &&
     form.startDate !== "" &&
-    form.description.trim() !== "" &&
     !saving;
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -166,37 +162,35 @@ export default function ExperiencesManager({
     setSaving(true);
     setBanner(null);
     const payload = {
-      jobTitle: form.jobTitle.trim(),
-      employer: form.employer.trim(),
+      name: form.name.trim(),
+      institution: form.institution.trim(),
       startDate: form.startDate,
-      endDate: ongoing ? null : form.endDate || null,
-      description: form.description
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .join("\n"),
+      endDate: inProgress ? null : form.endDate || null,
+      nqfLevel: NQF_LEVEL[form.nqfLevel],
       skillIds: pickedSkillIds,
     };
     try {
       if (selectedId) {
         const updated = await runAuthed(token, onTokenRefreshed, (t) =>
-          updateExperience(t, selectedId, payload)
+          updateQualification(t, selectedId, payload)
         );
-        commit(experiences.map((x) => (x.id === updated.id ? updated : x)));
+        commit(
+          qualifications.map((x) => (x.id === updated.id ? updated : x))
+        );
       } else {
         const created = await runAuthed(token, onTokenRefreshed, (t) =>
-          createExperience(t, payload)
+          createQualification(t, payload)
         );
-        commit([created, ...experiences]);
-        newRole();
+        commit([created, ...qualifications]);
+        newQualification();
       }
       setMobileView("list");
     } catch (err) {
       if (handleAuthError(err)) return;
       setBanner(
         selectedId
-          ? "Couldn't save that role. Try again."
-          : "Couldn't add that role. Try again."
+          ? "Couldn't save that qualification. Try again."
+          : "Couldn't add that qualification. Try again."
       );
     } finally {
       setSaving(false);
@@ -209,15 +203,15 @@ export default function ExperiencesManager({
     setBanner(null);
     try {
       await runAuthed(token, onTokenRefreshed, (t) =>
-        deleteExperience(t, deleteTarget.id)
+        deleteQualification(t, deleteTarget.id)
       );
-      commit(experiences.filter((x) => x.id !== deleteTarget.id));
-      if (selectedId === deleteTarget.id) newRole();
+      commit(qualifications.filter((x) => x.id !== deleteTarget.id));
+      if (selectedId === deleteTarget.id) newQualification();
       setDeleteTarget(null);
       setMobileView("list");
     } catch (err) {
       if (handleAuthError(err)) return;
-      setBanner("Couldn't delete that role. Try again.");
+      setBanner("Couldn't delete that qualification. Try again.");
     } finally {
       setDeleting(false);
     }
@@ -229,17 +223,17 @@ export default function ExperiencesManager({
   return (
     <>
       <AdminHeader
-        title="Experience"
-        endpoint="/api/Experience"
+        title="Qualifications"
+        endpoint="/api/Qualification"
         waking={waking}
         onLoggedOut={onLoggedOut}
         primaryAction={
           <button
             type="button"
             className="admin-btn-primary"
-            onClick={newRole}
+            onClick={newQualification}
           >
-            + Add role
+            + Add qualification
           </button>
         }
       />
@@ -256,35 +250,35 @@ export default function ExperiencesManager({
         {loadStatus === "loaded" && (
           <div className="admin-split" data-mobile-view={mobileView}>
             <div className="admin-split-list">
-              <div className="admin-list-head" data-cols="experience">
-                <span>jobTitle</span>
-                <span>employer</span>
+              <div className="admin-list-head" data-cols="qualifications">
+                <span>name</span>
+                <span>institution</span>
                 <span>period</span>
-                <span>skills</span>
+                <span>nqfLevel</span>
               </div>
               <div className="admin-list-rows">
-                {experiences.length === 0 ? (
+                {qualifications.length === 0 ? (
                   <div className="admin-list-empty">
                     <span>No records yet.</span>
                   </div>
                 ) : (
-                  experiences.map((exp) => (
+                  qualifications.map((q) => (
                     <button
-                      key={exp.id}
+                      key={q.id}
                       type="button"
                       className="admin-list-row"
-                      data-cols="experience"
-                      data-selected={selectedId === exp.id}
-                      onClick={() => selectRole(exp)}
+                      data-cols="qualifications"
+                      data-selected={selectedId === q.id}
+                      onClick={() => selectQualification(q)}
                     >
-                      <span className="l-title">{exp.jobTitle}</span>
-                      <span className="l-secondary">{exp.employer}</span>
+                      <span className="l-title">{q.name}</span>
+                      <span className="l-secondary">{q.institution}</span>
                       <span className="l-period">
-                        {monthYear(exp.startDate)} —{" "}
-                        {exp.endDate ? monthYear(exp.endDate) : "Present"}
+                        {monthYear(q.startDate)} —{" "}
+                        {q.endDate ? monthYear(q.endDate) : "In progress"}
                       </span>
                       <span className="l-badge">
-                        {exp.skills.length} LINKED
+                        NQF {NQF_LEVEL[q.nqfLevel]}
                       </span>
                     </button>
                   ))
@@ -294,9 +288,9 @@ export default function ExperiencesManager({
                 <button
                   type="button"
                   className="admin-btn-soft"
-                  onClick={newRole}
+                  onClick={newQualification}
                 >
-                  + Add role
+                  + Add qualification
                 </button>
               </div>
             </div>
@@ -317,52 +311,52 @@ export default function ExperiencesManager({
                       {isEditing ? "EDITING" : "NEW"}
                     </span>
                     <span className="admin-editor-title">
-                      {isEditing ? form.jobTitle || "Role" : "Add a role"}
+                      {isEditing ? form.name || "Qualification" : "Add a qualification"}
                     </span>
                   </div>
                 </div>
 
                 <form
-                  id="admin-exp-form"
+                  id="admin-qual-form"
                   className="admin-editor-body"
                   onSubmit={handleSubmit}
                 >
                   {banner && <div className="admin-error-banner">{banner}</div>}
 
                   <div>
-                    <label className="admin-label" htmlFor="exp-title">
-                      Job title
+                    <label className="admin-label" htmlFor="qual-name">
+                      name
                     </label>
                     <input
-                      id="exp-title"
+                      id="qual-name"
                       type="text"
                       className="admin-input"
-                      value={form.jobTitle}
-                      onChange={(e) => set("jobTitle", e.target.value)}
-                      placeholder="Software Developer"
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                      placeholder="BSc Computer Science"
                     />
                   </div>
                   <div>
-                    <label className="admin-label" htmlFor="exp-employer">
-                      Employer
+                    <label className="admin-label" htmlFor="qual-institution">
+                      institution
                     </label>
                     <input
-                      id="exp-employer"
+                      id="qual-institution"
                       type="text"
                       className="admin-input"
-                      value={form.employer}
-                      onChange={(e) => set("employer", e.target.value)}
-                      placeholder="Xiquel"
+                      value={form.institution}
+                      onChange={(e) => set("institution", e.target.value)}
+                      placeholder="University of Johannesburg"
                     />
                   </div>
 
                   <div className="admin-editor-dates">
                     <div>
-                      <label className="admin-label" htmlFor="exp-start">
+                      <label className="admin-label" htmlFor="qual-start">
                         startDate
                       </label>
                       <input
-                        id="exp-start"
+                        id="qual-start"
                         type="date"
                         className="admin-input admin-mono"
                         value={form.startDate}
@@ -370,16 +364,16 @@ export default function ExperiencesManager({
                       />
                     </div>
                     <div>
-                      <label className="admin-label" htmlFor="exp-end">
+                      <label className="admin-label" htmlFor="qual-end">
                         endDate
                       </label>
                       <input
-                        id="exp-end"
+                        id="qual-end"
                         type="date"
                         className="admin-input admin-mono"
                         value={form.endDate}
                         min={form.startDate || undefined}
-                        disabled={ongoing}
+                        disabled={inProgress}
                         onChange={(e) => set("endDate", e.target.value)}
                       />
                     </div>
@@ -388,24 +382,30 @@ export default function ExperiencesManager({
                   <label className="admin-editor-checkbox">
                     <input
                       type="checkbox"
-                      checked={ongoing}
-                      onChange={(e) => setOngoing(e.target.checked)}
+                      checked={inProgress}
+                      onChange={(e) => setInProgress(e.target.checked)}
                     />
-                    Ongoing — sends endDate: null
+                    In progress — sends endDate: null
                   </label>
 
                   <div>
-                    <label className="admin-label" htmlFor="exp-description">
-                      description — one bullet per line
+                    <label className="admin-label" htmlFor="qual-nqf">
+                      nqfLevel (int {NQF_LEVEL[form.nqfLevel]})
                     </label>
-                    <textarea
-                      id="exp-description"
-                      className="admin-textarea"
-                      style={{ minHeight: 84 }}
-                      value={form.description}
-                      onChange={(e) => set("description", e.target.value)}
-                      placeholder={"Led backend development for…\nBuilt an automated…"}
-                    />
+                    <select
+                      id="qual-nqf"
+                      className="admin-select"
+                      value={form.nqfLevel}
+                      onChange={(e) =>
+                        set("nqfLevel", e.target.value as NqfLevelName)
+                      }
+                    >
+                      {NQF_LEVEL_NAMES.map((name) => (
+                        <option key={name} value={name}>
+                          {NQF_LEVEL_LABEL[name]}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <SkillPicker
@@ -421,7 +421,7 @@ export default function ExperiencesManager({
                       type="button"
                       className="admin-btn-text-danger"
                       onClick={() => {
-                        const target = experiences.find(
+                        const target = qualifications.find(
                           (x) => x.id === selectedId
                         );
                         if (target) setDeleteTarget(target);
@@ -434,13 +434,13 @@ export default function ExperiencesManager({
                   <button
                     type="button"
                     className="admin-btn-secondary"
-                    onClick={newRole}
+                    onClick={newQualification}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    form="admin-exp-form"
+                    form="admin-qual-form"
                     className="admin-btn-primary"
                     disabled={!canSubmit}
                   >

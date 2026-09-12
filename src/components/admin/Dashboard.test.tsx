@@ -11,6 +11,15 @@ vi.mock("./SkillsManager", () => ({
 vi.mock("./ExperiencesManager", () => ({
   default: () => <div>experiences manager</div>,
 }));
+vi.mock("./ProjectsManager", () => ({
+  default: () => <div>projects manager</div>,
+}));
+vi.mock("./QualificationsManager", () => ({
+  default: () => <div>qualifications manager</div>,
+}));
+vi.mock("./CertificationsManager", () => ({
+  default: () => <div>certifications manager</div>,
+}));
 
 afterEach(cleanup);
 
@@ -36,12 +45,27 @@ describe("Dashboard", () => {
 
     fireEvent.click(screen.getAllByRole("tab", { name: /Experience/ })[0]);
     expect(screen.getByText("experiences manager")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("tab", { name: /Projects/ })[0]);
+    expect(screen.getByText("projects manager")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("tab", { name: /Qualifications/ })[0]);
+    expect(screen.getByText("qualifications manager")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("tab", { name: /Certifications/ })[0]);
+    expect(screen.getByText("certifications manager")).toBeInTheDocument();
   });
 
-  it("calls onLoggedOut from a log-out control", () => {
+  it("calls onLoggedOut from a sign-out control", () => {
     const onLoggedOut = vi.fn();
     renderDashboard(onLoggedOut);
-    fireEvent.click(screen.getAllByText("log out")[0]);
+    fireEvent.click(screen.getAllByText("Sign out")[0]);
     expect(onLoggedOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("groups tabs into CONTENT and CREDENTIALS rail sections", () => {
+    renderDashboard();
+    expect(screen.getByText("CONTENT")).toBeInTheDocument();
+    expect(screen.getByText("CREDENTIALS")).toBeInTheDocument();
   });
 });

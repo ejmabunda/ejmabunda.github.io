@@ -1,12 +1,6 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { within } from "@testing-library/react";
 import SkillsManager from "./SkillsManager";
 import {
   createSkill,
@@ -27,6 +21,19 @@ vi.mock("@/lib/skillApi", async (importOriginal) => {
     deleteSkill: vi.fn(),
   };
 });
+
+vi.mock("@/lib/experienceApi", () => ({
+  getExperiencesFresh: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/lib/projectApi", () => ({
+  getProjectsFresh: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/lib/qualificationApi", () => ({
+  getQualificationsFresh: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/lib/certificationApi", () => ({
+  getCertificationsFresh: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock("@/lib/authApi", () => ({
   refreshAccessToken: vi.fn(),
@@ -51,15 +58,11 @@ function renderManager(
       token="tok"
       onTokenRefreshed={vi.fn()}
       onLoggedOut={vi.fn()}
+      waking={false}
+      onCountChange={vi.fn()}
       {...overrides}
     />
   );
-}
-
-/** The skill names appear twice on screen (table + preview chips) — scope
- *  name lookups to the table so a match is unambiguous. */
-function inTable() {
-  return within(document.querySelector(".admin-skill-scroll") as HTMLElement);
 }
 
 afterEach(() => {
@@ -68,32 +71,31 @@ afterEach(() => {
 });
 
 describe("SkillsManager", () => {
-  it("lists existing skills once loaded and reports the count", async () => {
+  it("lists existing skills grouped by category and reports the count", async () => {
     getSkillsFreshMock.mockResolvedValue(sample);
     const onCountChange = vi.fn();
     renderManager({ onCountChange });
 
-    await screen.findByText("Skill list");
-    expect(inTable().getByText("C#")).toBeInTheDocument();
-    expect(inTable().getByText("GitHub")).toBeInTheDocument();
+    expect(await screen.findByText("C#")).toBeInTheDocument();
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
     expect(onCountChange).toHaveBeenLastCalledWith(2);
-    expect(screen.getByText("2 live")).toBeInTheDocument();
   });
 
-  it("shows an error state when the list fails to load", async () => {
+  it("shows an error state with a retry when the list fails to load", async () => {
     getSkillsFreshMock.mockRejectedValue(new Error("network"));
     renderManager();
 
     expect(
-      await screen.findByText(/something went wrong fetching your skills/i)
+      await screen.findByText(/this isn.t available right now/i)
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 
   it("shows an empty prompt when there are no skills", async () => {
     getSkillsFreshMock.mockResolvedValue([]);
     renderManager();
 
-    expect(await screen.findByText(/no skills yet/i)).toBeInTheDocument();
+    expect(await screen.findByText("No records yet.")).toBeInTheDocument();
   });
 
   it("creates a skill, sending the category as its integer", async () => {
@@ -105,17 +107,18 @@ describe("SkillsManager", () => {
     });
     renderManager();
 
-    await screen.findByText(/no skills yet/i);
+    await screen.findByText("No records yet.");
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
     fireEvent.change(screen.getByLabelText("New skill category"), {
       target: { value: "CloudAndDevOps" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(inTable().getByText("Docker")).toBeInTheDocument()
+      expect(screen.getByText("Docker")).toBeInTheDocument()
     );
     expect(createSkillMock).toHaveBeenCalledWith("tok", {
       name: "Docker",
@@ -132,7 +135,7 @@ describe("SkillsManager", () => {
     });
     renderManager();
 
-    await screen.findByText("Skill list");
+    await screen.findByText("C#");
     fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     fireEvent.change(screen.getByLabelText("Rename C#"), {
       target: { value: "C# / .NET" },
@@ -140,7 +143,7 @@ describe("SkillsManager", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(inTable().getByText("C# / .NET")).toBeInTheDocument()
+      expect(screen.getByText("C# / .NET")).toBeInTheDocument()
     );
     expect(updateSkillMock).toHaveBeenCalledWith("tok", {
       id: "1",
@@ -154,11 +157,11 @@ describe("SkillsManager", () => {
     deleteSkillMock.mockResolvedValue(undefined);
     renderManager();
 
-    await screen.findByText("Skill list");
+    await screen.findByText("GitHub");
     fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
     const dialog = screen.getByRole("dialog");
     expect(
-      within(dialog).getByRole("heading", { name: 'Delete "GitHub"?' })
+      within(dialog).getByRole("heading", { name: "Delete this record?" })
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
 
@@ -168,6 +171,19 @@ describe("SkillsManager", () => {
     await waitFor(() =>
       expect(screen.queryByText("GitHub")).not.toBeInTheDocument()
     );
+  });
+
+  it("filters by search text", async () => {
+    getSkillsFreshMock.mockResolvedValue(sample);
+    renderManager();
+
+    await screen.findByText("C#");
+    fireEvent.change(screen.getByLabelText("Search skills"), {
+      target: { value: "git" },
+    });
+
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+    expect(screen.queryByText("C#")).not.toBeInTheDocument();
   });
 
   it("refreshes the token on a 401 and retries the write", async () => {
@@ -183,14 +199,15 @@ describe("SkillsManager", () => {
     const onTokenRefreshed = vi.fn();
     renderManager({ onTokenRefreshed });
 
-    await screen.findByText(/no skills yet/i);
+    await screen.findByText("No records yet.");
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(inTable().getByText("Docker")).toBeInTheDocument()
+      expect(screen.getByText("Docker")).toBeInTheDocument()
     );
     expect(onTokenRefreshed).toHaveBeenCalledWith("new-tok");
     expect(createSkillMock).toHaveBeenNthCalledWith(2, "new-tok", {
@@ -206,11 +223,12 @@ describe("SkillsManager", () => {
     const onLoggedOut = vi.fn();
     renderManager({ onLoggedOut });
 
-    await screen.findByText(/no skills yet/i);
+    await screen.findByText("No records yet.");
+    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
     fireEvent.change(screen.getByLabelText("New skill name"), {
       target: { value: "Docker" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "+ Add skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onLoggedOut).toHaveBeenCalledTimes(1));
   });

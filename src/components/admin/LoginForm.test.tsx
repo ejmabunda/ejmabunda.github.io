@@ -36,14 +36,14 @@ describe("LoginForm", () => {
     const input = screen.getByLabelText("Password");
     expect(input).toHaveAttribute("type", "password");
 
-    fireEvent.click(screen.getByRole("button", { name: "show" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show" }));
     expect(input).toHaveAttribute("type", "text");
 
-    fireEvent.click(screen.getByRole("button", { name: "hide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
     expect(input).toHaveAttribute("type", "password");
   });
 
-  it("shows a wrong-password message on an invalid credential", async () => {
+  it("shows a wrong-password message on an invalid credential, without disclosing more", async () => {
     loginMock.mockRejectedValue(new InvalidPasswordError());
     render(<LoginForm onSuccess={vi.fn()} />);
 
@@ -52,7 +52,9 @@ describe("LoginForm", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-    expect(await screen.findByText("Wrong password. Try again.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("That password didn't match.")
+    ).toBeInTheDocument();
   });
 
   it("shows a generic message on an unexpected failure", async () => {
@@ -67,5 +69,10 @@ describe("LoginForm", () => {
     expect(
       await screen.findByText("Something went wrong. Try again.")
     ).toBeInTheDocument();
+  });
+
+  it("shows the API-awake status line by default (no cold-start pending)", () => {
+    render(<LoginForm onSuccess={vi.fn()} />);
+    expect(screen.getByText("API awake")).toBeInTheDocument();
   });
 });

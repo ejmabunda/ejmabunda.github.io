@@ -2,16 +2,16 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  createExperience,
-  deleteExperience,
-  getExperiencesFresh,
-  updateExperience,
+  createCertification,
+  deleteCertification,
+  getCertificationsFresh,
   UnauthorizedError,
-  type Experience,
-} from "@/lib/experienceApi";
+  updateCertification,
+  type Certification,
+} from "@/lib/certificationApi";
 import {
-  getSkillsFresh,
   CATEGORY_LABEL,
+  getSkillsFresh,
   SKILL_CATEGORY_NAMES,
   type Skill,
 } from "@/lib/skillApi";
@@ -20,7 +20,7 @@ import AdminHeader from "./AdminHeader";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import SkillPicker from "./SkillPicker";
 
-interface ExperiencesManagerProps {
+interface CertificationsManagerProps {
   token: string;
   onTokenRefreshed: (token: string) => void;
   onLoggedOut: () => void;
@@ -32,66 +32,59 @@ type LoadStatus = "loading" | "loaded" | "error";
 type MobileView = "list" | "editor";
 
 const BLANK = {
-  jobTitle: "",
-  employer: "",
-  startDate: "",
-  endDate: "",
-  description: "",
+  name: "",
+  issuingOrganization: "",
+  issueDate: "",
+  url: "",
 };
 
-function byStartDateDesc(a: Experience, b: Experience): number {
-  return b.startDate.localeCompare(a.startDate);
+function byIssueDateDesc(a: Certification, b: Certification): number {
+  return b.issueDate.localeCompare(a.issueDate);
 }
 
-/** `"2026-02-02T00:00:00"` → `"2026-02-02"` for a native date input. */
-function toDateInput(iso: string | null): string {
+function toDateInput(iso: string): string {
   return iso ? iso.slice(0, 10) : "";
 }
 
-/** `"2026-02-02T00:00:00"` → `"Mar 2023"` for the list's period column. */
 function monthYear(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-export default function ExperiencesManager({
+export default function CertificationsManager({
   token,
   onTokenRefreshed,
   onLoggedOut,
   waking,
   onCountChange,
-}: ExperiencesManagerProps) {
+}: CertificationsManagerProps) {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [banner, setBanner] = useState<string | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState(BLANK);
-  const [ongoing, setOngoing] = useState(false);
   const [pickedSkillIds, setPickedSkillIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Experience | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Certification | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>("list");
 
-  function commit(next: Experience[]): Experience[] {
-    const sorted = [...next].sort(byStartDateDesc);
-    setExperiences(sorted);
+  function commit(next: Certification[]): Certification[] {
+    const sorted = [...next].sort(byIssueDateDesc);
+    setCertifications(sorted);
     onCountChange?.(sorted.length);
     return sorted;
   }
 
   function load() {
     setLoadStatus("loading");
-    Promise.all([getExperiencesFresh(), getSkillsFresh()])
-      .then(([exps, sks]) => {
-        const sorted = commit(exps);
+    Promise.all([getCertificationsFresh(), getSkillsFresh()])
+      .then(([certs, sks]) => {
+        const sorted = commit(certs);
         setSkills(sks);
         setLoadStatus("loaded");
-        // Default the editor to the first record rather than a blank "new"
-        // form, so opening the tab shows something rather than nothing —
-        // but leave the mobile pane on the list, not jump into the editor.
         if (sorted.length > 0) loadIntoEditor(sorted[0]);
       })
       .catch(() => setLoadStatus("error"));
@@ -122,31 +115,26 @@ export default function ExperiencesManager({
     return false;
   }
 
-  /** Loads a role into the editor without switching the mobile pane —
-   *  used both by explicit row selection and by the initial-load default. */
-  function loadIntoEditor(exp: Experience) {
-    setSelectedId(exp.id);
+  function loadIntoEditor(c: Certification) {
+    setSelectedId(c.id);
     setForm({
-      jobTitle: exp.jobTitle,
-      employer: exp.employer,
-      startDate: toDateInput(exp.startDate),
-      endDate: toDateInput(exp.endDate),
-      description: exp.description,
+      name: c.name,
+      issuingOrganization: c.issuingOrganization,
+      issueDate: toDateInput(c.issueDate),
+      url: c.url,
     });
-    setOngoing(exp.endDate === null);
-    setPickedSkillIds(exp.skills.map((s) => s.id));
+    setPickedSkillIds(c.skills.map((s) => s.id));
     setBanner(null);
   }
 
-  function selectRole(exp: Experience) {
-    loadIntoEditor(exp);
+  function selectCertification(c: Certification) {
+    loadIntoEditor(c);
     setMobileView("editor");
   }
 
-  function newRole() {
+  function newCertification() {
     setSelectedId(null);
     setForm(BLANK);
-    setOngoing(false);
     setPickedSkillIds([]);
     setBanner(null);
     setMobileView("editor");
@@ -154,10 +142,9 @@ export default function ExperiencesManager({
 
   const isEditing = selectedId !== null;
   const canSubmit =
-    form.jobTitle.trim() !== "" &&
-    form.employer.trim() !== "" &&
-    form.startDate !== "" &&
-    form.description.trim() !== "" &&
+    form.name.trim() !== "" &&
+    form.issuingOrganization.trim() !== "" &&
+    form.issueDate !== "" &&
     !saving;
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -166,37 +153,34 @@ export default function ExperiencesManager({
     setSaving(true);
     setBanner(null);
     const payload = {
-      jobTitle: form.jobTitle.trim(),
-      employer: form.employer.trim(),
-      startDate: form.startDate,
-      endDate: ongoing ? null : form.endDate || null,
-      description: form.description
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .join("\n"),
+      name: form.name.trim(),
+      issuingOrganization: form.issuingOrganization.trim(),
+      issueDate: form.issueDate,
+      url: form.url.trim(),
       skillIds: pickedSkillIds,
     };
     try {
       if (selectedId) {
         const updated = await runAuthed(token, onTokenRefreshed, (t) =>
-          updateExperience(t, selectedId, payload)
+          updateCertification(t, selectedId, payload)
         );
-        commit(experiences.map((x) => (x.id === updated.id ? updated : x)));
+        commit(
+          certifications.map((x) => (x.id === updated.id ? updated : x))
+        );
       } else {
         const created = await runAuthed(token, onTokenRefreshed, (t) =>
-          createExperience(t, payload)
+          createCertification(t, payload)
         );
-        commit([created, ...experiences]);
-        newRole();
+        commit([created, ...certifications]);
+        newCertification();
       }
       setMobileView("list");
     } catch (err) {
       if (handleAuthError(err)) return;
       setBanner(
         selectedId
-          ? "Couldn't save that role. Try again."
-          : "Couldn't add that role. Try again."
+          ? "Couldn't save that certification. Try again."
+          : "Couldn't add that certification. Try again."
       );
     } finally {
       setSaving(false);
@@ -209,15 +193,15 @@ export default function ExperiencesManager({
     setBanner(null);
     try {
       await runAuthed(token, onTokenRefreshed, (t) =>
-        deleteExperience(t, deleteTarget.id)
+        deleteCertification(t, deleteTarget.id)
       );
-      commit(experiences.filter((x) => x.id !== deleteTarget.id));
-      if (selectedId === deleteTarget.id) newRole();
+      commit(certifications.filter((x) => x.id !== deleteTarget.id));
+      if (selectedId === deleteTarget.id) newCertification();
       setDeleteTarget(null);
       setMobileView("list");
     } catch (err) {
       if (handleAuthError(err)) return;
-      setBanner("Couldn't delete that role. Try again.");
+      setBanner("Couldn't delete that certification. Try again.");
     } finally {
       setDeleting(false);
     }
@@ -229,17 +213,17 @@ export default function ExperiencesManager({
   return (
     <>
       <AdminHeader
-        title="Experience"
-        endpoint="/api/Experience"
+        title="Certifications"
+        endpoint="/api/Certification"
         waking={waking}
         onLoggedOut={onLoggedOut}
         primaryAction={
           <button
             type="button"
             className="admin-btn-primary"
-            onClick={newRole}
+            onClick={newCertification}
           >
-            + Add role
+            + Add certification
           </button>
         }
       />
@@ -256,35 +240,34 @@ export default function ExperiencesManager({
         {loadStatus === "loaded" && (
           <div className="admin-split" data-mobile-view={mobileView}>
             <div className="admin-split-list">
-              <div className="admin-list-head" data-cols="experience">
-                <span>jobTitle</span>
-                <span>employer</span>
-                <span>period</span>
+              <div className="admin-list-head" data-cols="certifications">
+                <span>name</span>
+                <span>issuingOrganization</span>
+                <span>issueDate</span>
                 <span>skills</span>
               </div>
               <div className="admin-list-rows">
-                {experiences.length === 0 ? (
+                {certifications.length === 0 ? (
                   <div className="admin-list-empty">
                     <span>No records yet.</span>
                   </div>
                 ) : (
-                  experiences.map((exp) => (
+                  certifications.map((c) => (
                     <button
-                      key={exp.id}
+                      key={c.id}
                       type="button"
                       className="admin-list-row"
-                      data-cols="experience"
-                      data-selected={selectedId === exp.id}
-                      onClick={() => selectRole(exp)}
+                      data-cols="certifications"
+                      data-selected={selectedId === c.id}
+                      onClick={() => selectCertification(c)}
                     >
-                      <span className="l-title">{exp.jobTitle}</span>
-                      <span className="l-secondary">{exp.employer}</span>
-                      <span className="l-period">
-                        {monthYear(exp.startDate)} —{" "}
-                        {exp.endDate ? monthYear(exp.endDate) : "Present"}
+                      <span className="l-title">{c.name}</span>
+                      <span className="l-secondary">
+                        {c.issuingOrganization}
                       </span>
+                      <span className="l-period">{monthYear(c.issueDate)}</span>
                       <span className="l-badge">
-                        {exp.skills.length} LINKED
+                        {c.skills.length} LINKED
                       </span>
                     </button>
                   ))
@@ -294,9 +277,9 @@ export default function ExperiencesManager({
                 <button
                   type="button"
                   className="admin-btn-soft"
-                  onClick={newRole}
+                  onClick={newCertification}
                 >
-                  + Add role
+                  + Add certification
                 </button>
               </div>
             </div>
@@ -317,95 +300,73 @@ export default function ExperiencesManager({
                       {isEditing ? "EDITING" : "NEW"}
                     </span>
                     <span className="admin-editor-title">
-                      {isEditing ? form.jobTitle || "Role" : "Add a role"}
+                      {isEditing ? form.name || "Certification" : "Add a certification"}
                     </span>
                   </div>
                 </div>
 
                 <form
-                  id="admin-exp-form"
+                  id="admin-cert-form"
                   className="admin-editor-body"
                   onSubmit={handleSubmit}
                 >
                   {banner && <div className="admin-error-banner">{banner}</div>}
 
                   <div>
-                    <label className="admin-label" htmlFor="exp-title">
-                      Job title
+                    <label className="admin-label" htmlFor="cert-name">
+                      name
                     </label>
                     <input
-                      id="exp-title"
+                      id="cert-name"
                       type="text"
                       className="admin-input"
-                      value={form.jobTitle}
-                      onChange={(e) => set("jobTitle", e.target.value)}
-                      placeholder="Software Developer"
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                      placeholder="AZ-204"
                     />
                   </div>
                   <div>
-                    <label className="admin-label" htmlFor="exp-employer">
-                      Employer
+                    <label className="admin-label" htmlFor="cert-org">
+                      issuingOrganization
                     </label>
                     <input
-                      id="exp-employer"
+                      id="cert-org"
                       type="text"
                       className="admin-input"
-                      value={form.employer}
-                      onChange={(e) => set("employer", e.target.value)}
-                      placeholder="Xiquel"
+                      value={form.issuingOrganization}
+                      onChange={(e) =>
+                        set("issuingOrganization", e.target.value)
+                      }
+                      placeholder="Microsoft"
                     />
                   </div>
 
                   <div className="admin-editor-dates">
                     <div>
-                      <label className="admin-label" htmlFor="exp-start">
-                        startDate
+                      <label className="admin-label" htmlFor="cert-date">
+                        issueDate
                       </label>
                       <input
-                        id="exp-start"
+                        id="cert-date"
                         type="date"
                         className="admin-input admin-mono"
-                        value={form.startDate}
-                        onChange={(e) => set("startDate", e.target.value)}
+                        value={form.issueDate}
+                        onChange={(e) => set("issueDate", e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="admin-label" htmlFor="exp-end">
-                        endDate
+                      <label className="admin-label" htmlFor="cert-url">
+                        url
                       </label>
                       <input
-                        id="exp-end"
-                        type="date"
+                        id="cert-url"
+                        type="text"
                         className="admin-input admin-mono"
-                        value={form.endDate}
-                        min={form.startDate || undefined}
-                        disabled={ongoing}
-                        onChange={(e) => set("endDate", e.target.value)}
+                        value={form.url}
+                        onChange={(e) => set("url", e.target.value)}
+                        placeholder="https://…"
                       />
                     </div>
-                  </div>
-
-                  <label className="admin-editor-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={ongoing}
-                      onChange={(e) => setOngoing(e.target.checked)}
-                    />
-                    Ongoing — sends endDate: null
-                  </label>
-
-                  <div>
-                    <label className="admin-label" htmlFor="exp-description">
-                      description — one bullet per line
-                    </label>
-                    <textarea
-                      id="exp-description"
-                      className="admin-textarea"
-                      style={{ minHeight: 84 }}
-                      value={form.description}
-                      onChange={(e) => set("description", e.target.value)}
-                      placeholder={"Led backend development for…\nBuilt an automated…"}
-                    />
                   </div>
 
                   <SkillPicker
@@ -421,7 +382,7 @@ export default function ExperiencesManager({
                       type="button"
                       className="admin-btn-text-danger"
                       onClick={() => {
-                        const target = experiences.find(
+                        const target = certifications.find(
                           (x) => x.id === selectedId
                         );
                         if (target) setDeleteTarget(target);
@@ -434,13 +395,13 @@ export default function ExperiencesManager({
                   <button
                     type="button"
                     className="admin-btn-secondary"
-                    onClick={newRole}
+                    onClick={newCertification}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    form="admin-exp-form"
+                    form="admin-cert-form"
                     className="admin-btn-primary"
                     disabled={!canSubmit}
                   >
