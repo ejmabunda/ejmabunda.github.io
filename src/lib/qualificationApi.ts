@@ -1,32 +1,28 @@
 import { API_BASE_URL } from "./config";
-import { UnauthorizedError } from "./apiErrors";
+import { ApiError, readErrorMessage, UnauthorizedError } from "./apiErrors";
 import { fetchWithTimeout, retryThroughColdStart } from "./coldStartRetry";
 import type { Skill } from "./skillApi";
 
-export { UnauthorizedError };
+export { ApiError, UnauthorizedError };
 
 /**
- * No `/api/Qualification` controller exists yet — this client is built
- * against the anticipated `Experience`-shaped contract per the console
- * redesign handoff. It will 404 until the backend ships.
- *
  * `nqfLevel` follows the same asymmetric wire format as `Skill.skillCategory`:
- * the backing int on write, the enum name on read. The South African NQF
- * ladder (SAQA) is used for the 1–10 labels; the key names here are
- * provisional and should be reconciled with the backend's real enum names
- * once the controller ships.
+ * the backing int on write, the enum name on read (the backend has no
+ * `JsonStringEnumConverter`, so sending a name is a 400). Keys mirror the
+ * backend's `enum NqfLevel` in `Models/Qualification.cs`; the labels follow
+ * the South African NQF ladder (SAQA).
  */
 export const NQF_LEVEL = {
-  Nqf1: 1,
-  Nqf2: 2,
-  Nqf3: 3,
-  Nqf4: 4,
-  Nqf5: 5,
-  Nqf6: 6,
-  Nqf7: 7,
-  Nqf8: 8,
-  Nqf9: 9,
-  Nqf10: 10,
+  Grade9: 1,
+  Grade10: 2,
+  Grade11: 3,
+  Grade12: 4,
+  HigherCertificate: 5,
+  Diploma: 6,
+  BachelorsDegree: 7,
+  HonoursDegree: 8,
+  MastersDegree: 9,
+  DoctoralDegree: 10,
 } as const;
 
 export type NqfLevelName = keyof typeof NQF_LEVEL;
@@ -35,16 +31,16 @@ export type NqfLevelName = keyof typeof NQF_LEVEL;
 export const NQF_LEVEL_NAMES = Object.keys(NQF_LEVEL) as NqfLevelName[];
 
 export const NQF_LEVEL_LABEL: Record<NqfLevelName, string> = {
-  Nqf1: "Grade 9",
-  Nqf2: "Grade 10",
-  Nqf3: "Grade 11",
-  Nqf4: "National Senior Certificate",
-  Nqf5: "Higher Certificate",
-  Nqf6: "Diploma",
-  Nqf7: "Bachelor's Degree",
-  Nqf8: "Honours Degree",
-  Nqf9: "Master's Degree",
-  Nqf10: "Doctoral Degree",
+  Grade9: "Grade 9",
+  Grade10: "Grade 10",
+  Grade11: "Grade 11",
+  Grade12: "National Senior Certificate",
+  HigherCertificate: "Higher Certificate",
+  Diploma: "Diploma",
+  BachelorsDegree: "Bachelor's Degree",
+  HonoursDegree: "Honours Degree",
+  MastersDegree: "Master's Degree",
+  DoctoralDegree: "Doctoral Degree",
 };
 
 export function isKnownNqfLevel(value: string): value is NqfLevelName {
@@ -59,7 +55,7 @@ export interface Qualification {
   startDate: string;
   /** `null` = in progress. */
   endDate: string | null;
-  /** enum NAME on the way out (e.g. "Nqf8") */
+  /** enum NAME on the way out (e.g. "Diploma") */
   nqfLevel: NqfLevelName;
   /** Same `SkillDto` shape as `GET /api/Skill`. */
   skills: Skill[];
@@ -75,11 +71,17 @@ export interface QualificationCreateInput {
   skillIds: string[];
 }
 
+/**
+ * Omitted fields are left untouched — except `endDate`, which the backend
+ * assigns unconditionally (an omitted one silently becomes `null`, i.e. "in
+ * progress"). It's required here so every PUT carries it. `skillIds`: omit to
+ * keep the current links, `[]` to clear them, or a list to mirror it exactly.
+ */
 export interface QualificationUpdateInput {
   name?: string;
   institution?: string;
   startDate?: string;
-  endDate?: string | null;
+  endDate: string | null;
   nqfLevel?: number;
   skillIds?: string[];
 }
@@ -88,12 +90,11 @@ const QUALIFICATION_ENDPOINT = () => `${API_BASE_URL}/api/Qualification`;
 
 async function fetchQualificationsOnce(): Promise<Qualification[]> {
   const res = await fetchWithTimeout(QUALIFICATION_ENDPOINT());
-  // No controller exists yet, so this 404s today — see projectApi's
-  // fetchProjectsOnce for why a 404 resolves to [] instead of retrying.
-  if (res.status === 404) return [];
   if (!res.ok) {
     throw new Error(`Qualification API responded with ${res.status}`);
   }
+  // The list endpoint returns `[]` (not a 404) when there are none, already
+  // ordered newest `startDate` first.
   return (await res.json()) as Qualification[];
 }
 
@@ -139,9 +140,9 @@ export async function createQualification(
     body: JSON.stringify(input),
   });
   if (res.status === 401) throw new UnauthorizedError();
-  if (!res.ok) {
-    throw new Error(`Create qualification failed with ${res.status}`);
-  }
+  // A 400 carries a plain-text reason (e.g. an unknown skill id) or JSON
+  // ValidationProblemDetails — surface whichever it is to the editor.
+  if (!res.ok) throw new ApiError(res.status, await readErrorMessage(res));
   return (await res.json()) as Qualification;
 }
 
@@ -156,9 +157,9 @@ export async function updateQualification(
     body: JSON.stringify(input),
   });
   if (res.status === 401) throw new UnauthorizedError();
-  if (!res.ok) {
-    throw new Error(`Update qualification failed with ${res.status}`);
-  }
+  // A 400 carries a plain-text reason (e.g. an unknown skill id) or JSON
+  // ValidationProblemDetails — surface whichever it is to the editor.
+  if (!res.ok) throw new ApiError(res.status, await readErrorMessage(res));
   return (await res.json()) as Qualification;
 }
 
@@ -171,8 +172,9 @@ export async function deleteQualification(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (res.status === 401) throw new UnauthorizedError();
+  // A 404 means that id is already gone — the caller's goal state, not a failure.
   if (!res.ok && res.status !== 404) {
-    throw new Error(`Delete qualification failed with ${res.status}`);
+    throw new ApiError(res.status, await readErrorMessage(res));
   }
 }
 
