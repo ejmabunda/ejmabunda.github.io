@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
+  ApiError,
   createQualification,
   deleteQualification,
   getQualificationsFresh,
@@ -40,20 +41,39 @@ const BLANK = {
   institution: "",
   startDate: "",
   endDate: "",
-  nqfLevel: "Nqf7" as NqfLevelName,
+  nqfLevel: "BachelorsDegree" as NqfLevelName,
 };
 
-function byNqfLevelDesc(a: Qualification, b: Qualification): number {
-  return NQF_LEVEL[b.nqfLevel] - NQF_LEVEL[a.nqfLevel];
+// Newest first — the API already returns this order; re-sorting keeps it
+// after a local create/update, consistent with ExperiencesManager. The dates
+// are fixed-width ISO strings, so a lexical compare is chronological.
+function byStartDateDesc(a: Qualification, b: Qualification): number {
+  return b.startDate.localeCompare(a.startDate);
 }
 
+/** `"2024-01-01T00:00:00"` → `"2024-01-01"` for a native date input. */
 function toDateInput(iso: string | null): string {
   return iso ? iso.slice(0, 10) : "";
 }
 
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+// The value has no zone, so read the calendar month off the string rather
+// than through `new Date()`, which can shift it across a month boundary.
 function monthYear(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const [year, month] = iso.split("-");
+  return `${MONTHS[Number(month) - 1]} ${year}`;
+}
+
+/** List period column; a same-month start and end collapses to one date. */
+function period(q: Qualification): string {
+  const start = monthYear(q.startDate);
+  if (q.endDate === null) return `${start} — In progress`;
+  const end = monthYear(q.endDate);
+  return start === end ? start : `${start} — ${end}`;
 }
 
 export default function QualificationsManager({
@@ -78,7 +98,7 @@ export default function QualificationsManager({
   const [mobileView, setMobileView] = useState<MobileView>("list");
 
   function commit(next: Qualification[]): Qualification[] {
-    const sorted = [...next].sort(byNqfLevelDesc);
+    const sorted = [...next].sort(byStartDateDesc);
     setQualifications(sorted);
     onCountChange?.(sorted.length);
     return sorted;
@@ -159,13 +179,25 @@ export default function QualificationsManager({
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (!canSubmit) return;
+    // The backend doesn't check the date order or that a finished
+    // qualification has an end date, so guard both here.
+    if (!inProgress && form.endDate === "") {
+      setBanner("Add an end date, or mark it as in progress.");
+      return;
+    }
+    if (!inProgress && form.endDate < form.startDate) {
+      setBanner("The end date can't be before the start date.");
+      return;
+    }
     setSaving(true);
     setBanner(null);
+    // Always the full form: PUT treats an omitted endDate as null, and the
+    // full picked list keeps the skill links an exact mirror.
     const payload = {
       name: form.name.trim(),
       institution: form.institution.trim(),
       startDate: form.startDate,
-      endDate: inProgress ? null : form.endDate || null,
+      endDate: inProgress ? null : form.endDate,
       nqfLevel: NQF_LEVEL[form.nqfLevel],
       skillIds: pickedSkillIds,
     };
@@ -188,9 +220,11 @@ export default function QualificationsManager({
     } catch (err) {
       if (handleAuthError(err)) return;
       setBanner(
-        selectedId
-          ? "Couldn't save that qualification. Try again."
-          : "Couldn't add that qualification. Try again."
+        err instanceof ApiError && err.message
+          ? err.message
+          : selectedId
+            ? "Couldn't save that qualification. Try again."
+            : "Couldn't add that qualification. Try again."
       );
     } finally {
       setSaving(false);
@@ -273,10 +307,7 @@ export default function QualificationsManager({
                     >
                       <span className="l-title">{q.name}</span>
                       <span className="l-secondary">{q.institution}</span>
-                      <span className="l-period">
-                        {monthYear(q.startDate)} —{" "}
-                        {q.endDate ? monthYear(q.endDate) : "In progress"}
-                      </span>
+                      <span className="l-period">{period(q)}</span>
                       <span className="l-badge">
                         NQF {NQF_LEVEL[q.nqfLevel]}
                       </span>
