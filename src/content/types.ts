@@ -13,8 +13,3 @@ export interface HeroCta {
   variant: ButtonVariant;
   external?: boolean;
 }
-
-export interface EducationEntry {
-  label: string;
-  meta: string;
-}
